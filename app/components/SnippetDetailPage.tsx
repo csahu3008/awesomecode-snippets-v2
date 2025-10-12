@@ -35,7 +35,7 @@ interface RelatedSnippet {
 
 interface SnippetDetailPageProps {
   snippetId: string;
-  onNavigate: (page: Page, snippetId?: string) => void;
+  handleNavigate: (page: Page, snippetId?: string) => void;
   user: User | null;
 }
 
@@ -174,7 +174,7 @@ const relatedSnippets: RelatedSnippet[] = [
   }
 ];
 
-export function SnippetDetailPage({ snippetId, onNavigate, user }: SnippetDetailPageProps) {
+export function SnippetDetailPage({ snippetId, handleNavigate, user }: SnippetDetailPageProps) {
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>(snippetData['1'].comments);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -265,7 +265,7 @@ export function SnippetDetailPage({ snippetId, onNavigate, user }: SnippetDetail
       toast.success('Snippet deleted successfully!');
       setIsDeleting(false);
       setShowDeleteModal(false);
-      onNavigate('snippets');
+      handleNavigate('snippets');
     }, 1000);
   };
 
@@ -287,7 +287,7 @@ export function SnippetDetailPage({ snippetId, onNavigate, user }: SnippetDetail
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => onNavigate('snippets')}
+            onClick={() => handleNavigate('snippets')}
             className="mr-4"
           >
             ← Back to Snippets
@@ -418,7 +418,7 @@ export function SnippetDetailPage({ snippetId, onNavigate, user }: SnippetDetail
                       <Card 
                         key={related.id}
                         className="hover:shadow-md transition-all duration-200 cursor-pointer hover:-translate-y-1 border-border"
-                        onClick={() => onNavigate('snippet-detail', related.id)}
+                        onClick={() => handleNavigate('snippet-detail', related.id)}
                       >
                         <CardContent className="p-4">
                           <h3 className="font-medium text-sm mb-3 line-clamp-2 leading-tight">
@@ -552,7 +552,7 @@ export function SnippetDetailPage({ snippetId, onNavigate, user }: SnippetDetail
                     <Button 
                       className="w-full" 
                       variant="outline"
-                      onClick={() => onNavigate('edit-snippet', snippetId)}
+                      onClick={() => handleNavigate('edit-snippet', snippetId)}
                       size="sm"
                     >
                       <span className="mr-2">✏️</span>

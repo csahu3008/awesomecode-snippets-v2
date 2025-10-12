@@ -18,7 +18,7 @@ interface User {
 }
 
 interface AddSnippetPageProps {
-  onNavigate: (page: Page, snippetId?: string) => void;
+  handleNavigate: (page: Page, snippetId?: string) => void;
   user: User | null;
 }
 
@@ -27,8 +27,14 @@ const languages = [
   'PHP', 'SQL', 'Go', 'Rust', 'C#', 'Ruby', 'Swift', 'Kotlin'
 ];
 
-export function AddSnippetPage({ onNavigate, user }: AddSnippetPageProps) {
+export function AddSnippetPage({ handleNavigate, user }: AddSnippetPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useMemo(() => ({
+    push: (path: string) => {
+      // Simulate navigation
+      console.log(`Navigating to ${path}`);
+    }
+  }), []);
   const [form, setForm] = useState({
     title: '',
     language: '',
@@ -47,7 +53,7 @@ export function AddSnippetPage({ onNavigate, user }: AddSnippetPageProps) {
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
             You need to be logged in to create snippets.
           </p>
-          <Button onClick={() => onNavigate('overview')}>
+          <Button onClick={() => router.push('')}>
             ← Back to Home
           </Button>
         </div>
@@ -77,12 +83,12 @@ export function AddSnippetPage({ onNavigate, user }: AddSnippetPageProps) {
       setIsSubmitting(false);
       
       // Navigate to the new snippet detail page
-      onNavigate('snippet-detail', mockSnippetId);
+      router.push(`/snippet-detail/${mockSnippetId}`);
     }, 1000);
   };
 
   const handleCancel = () => {
-    onNavigate('overview');
+    router.push('');
   };
 
   const parsedTags = form.tags

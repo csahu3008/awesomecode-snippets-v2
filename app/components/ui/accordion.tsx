@@ -1,6 +1,6 @@
 "use client";
 
-import { Content as AccordionContent, Item as AccordionItem, Trigger as AccordionTrigger } from "@radix-ui/react-accordion";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "lucide-react";
 import * as React from "react";
 

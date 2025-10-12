@@ -7,7 +7,7 @@ import { Progress } from './ui/progress';
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail';
 
 interface LanguagesPageProps {
-  onNavigate: (page: Page) => void;
+  handleNavigate: (page: Page) => void;
 }
 
 // Mock languages data
@@ -102,7 +102,7 @@ const allLanguages = [
   }
 ];
 
-export function LanguagesPage({ onNavigate }: LanguagesPageProps) {
+export function LanguagesPage({ handleNavigate }: LanguagesPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter languages based on search
@@ -120,7 +120,7 @@ export function LanguagesPage({ onNavigate }: LanguagesPageProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onNavigate('overview')}
+          onClick={() => handleNavigate('overview')}
           className="mr-4"
         >
           ← Back

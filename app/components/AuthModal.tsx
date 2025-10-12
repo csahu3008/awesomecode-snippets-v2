@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -6,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Separator } from './ui/separator';
 import { toast } from 'sonner';
+import { useGlobalContext } from "../context";
 
 interface User {
   id: string;
@@ -17,10 +19,10 @@ interface User {
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: User) => void;
 }
 
-export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose}: AuthModalProps) {
+  const { handleLogin }=useGlobalContext();
   const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -33,7 +35,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
     confirmPassword: ''
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuthLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -46,7 +48,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
         email: loginForm.email
       };
       
-      onLogin(mockUser);
+      handleLogin(mockUser);
       toast.success('Successfully logged in!');
       setIsLoading(false);
       
@@ -74,7 +76,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
         email: signupForm.email
       };
       
-      onLogin(mockUser);
+      handleLogin(mockUser);
       toast.success('Account created successfully!');
       setIsLoading(false);
       
@@ -107,7 +109,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
           </TabsList>
 
           <TabsContent value="login" className="space-y-4 mt-6">
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleAuthLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="login-email">Email</Label>
                 <Input

@@ -9,7 +9,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail';
 
 interface SnippetsPageProps {
-  onNavigate: (page: Page, snippetId?: string) => void;
+  handleNavigate: (page: Page, snippetId?: string) => void;
 }
 
 // Mock data for snippets
@@ -82,12 +82,17 @@ const allSnippets = [
   }
 ];
 
-export function SnippetsPage({ onNavigate }: SnippetsPageProps) {
+export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
-  
+  const router = useMemo(() => ({
+    push: (path: string) => {
+      // Simulate navigation
+      console.log(`Navigating to ${path}`);
+    }
+  }), []);
   const itemsPerPage = 4;
   const languages = ['all', 'JavaScript', 'Python', 'C++', 'CSS', 'SQL', 'TypeScript'];
 
@@ -131,7 +136,7 @@ export function SnippetsPage({ onNavigate }: SnippetsPageProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onNavigate('overview')}
+          onClick={() => handleNavigate('overview')}
           className="mr-4"
         >
           ← Back
@@ -188,7 +193,7 @@ export function SnippetsPage({ onNavigate }: SnippetsPageProps) {
           <Card 
             key={snippet.id} 
             className="hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onNavigate('snippet-detail', snippet.id)}
+            onClick={() => router.push(`/snippet-detail/${snippet.id}`)}
           >
             <CardHeader>
               <div className="flex items-start justify-between gap-3">

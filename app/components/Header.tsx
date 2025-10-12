@@ -1,7 +1,11 @@
+'use client';
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from './ui/sheet';
 import { AuthModal } from './AuthModal';
+import { useGlobalContext } from "../context";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail' | 'add-snippet' | 'edit-snippet';
 
@@ -14,37 +18,38 @@ interface User {
 
 interface HeaderProps {
   currentPage: Page;
-  onNavigate: (page: Page) => void;
+  handleNavigate: (page: Page) => void;
   isDarkMode: boolean;
-  onToggleDarkMode: () => void;
+  toggleDarkMode: () => void;
   user: User | null;
-  onLogin: (user: User) => void;
-  onLogout: () => void;
+  handleLogin: (user: User) => void;
+  handleLogout: () => void;
 }
 
-export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, user, onLogin, onLogout }: HeaderProps) {
+export function Header() {
+  const { currentPage, handleNavigate, isDarkMode, toggleDarkMode, user, handleLogin, handleLogout }=useGlobalContext();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
+  const pathname=usePathname();
   const navItems = [
-    { id: 'overview' as Page, label: 'Overview', emoji: '🏠' },
-    { id: 'snippets' as Page, label: 'Snippets', emoji: '📄' },
-    { id: 'contributors' as Page, label: 'Top Contributors', emoji: '🌟' },
-    { id: 'languages' as Page, label: 'Top Languages', emoji: '🧠' },
+    { id: 'overview' as Page, label: 'Overview', emoji: '🏠', href: '/' },
+    { id: 'snippets' as Page, label: 'Snippets', emoji: '📄', href: '/snippets' },
+    { id: 'contributors' as Page, label: 'Top Contributors', emoji: '🌟', href: '/contributors' },
+    { id: 'languages' as Page, label: 'Top Languages', emoji: '🧠', href: '/languages' },
   ];
 
   const handleNavClick = (page: Page) => {
-    onNavigate(page);
+    handleNavigate(page);
     setIsSheetOpen(false);
   };
 
   const handleLoginSuccess = (userData: User) => {
-    onLogin(userData);
+    handleLogin(userData);
     setIsAuthModalOpen(false);
   };
 
   const handleLogoutClick = () => {
-    onLogout();
+    handleLogout();
     setIsSheetOpen(false);
   };
 
@@ -53,30 +58,30 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
-          <div 
-            className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => handleNavClick('overview')}
+          <Link 
+            href="/"
+            className="flex items-center space-x-2"
           >
             <span className="text-2xl">📄</span>
             <span className="font-mono tracking-tight hidden sm:inline text-lg">AwesomeCodeSnippets</span>
             <span className="font-mono tracking-tight sm:hidden text-lg">ACS</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-6">
             {navItems.map((item) => (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => handleNavClick(item.id)}
+                href={item.href}
                 className={`text-sm transition-colors hover:text-primary px-3 py-2 rounded-md ${
-                  currentPage === item.id
+                  pathname === item.href
                     ? 'text-primary font-medium bg-primary/10'
                     : 'text-muted-foreground hover:bg-muted'
                 }`}
               >
                 <span className="mr-2">{item.emoji}</span>
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
@@ -84,23 +89,21 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
           <div className="flex items-center space-x-2 lg:space-x-3">
             {/* Add Snippet Button for logged-in users (Desktop only) */}
             {user && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleNavClick('add-snippet')}
-                className="hidden md:inline-flex"
+              <Link
+                href="/add-snippet"
+                className="hidden md:inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
                 <span className="mr-2">➕</span>
                 <span className="hidden lg:inline">Add Snippet</span>
                 <span className="lg:hidden">Add</span>
-              </Button>
+              </Link>
             )}
 
             {/* Dark Mode Toggle */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={onToggleDarkMode}
+              onClick={toggleDarkMode}
               className="h-9 w-9 px-0 text-lg"
               title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -119,7 +122,7 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={onLogout}
+                  onClick={handleLogout}
                 >
                   Logout
                 </Button>
@@ -208,9 +211,10 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
                         NAVIGATION
                       </p>
                       {navItems.map((item) => (
-                        <button
+                        <Link
                           key={item.id}
-                          onClick={() => handleNavClick(item.id)}
+                          href={item.href}
+                          onClick={() => setIsSheetOpen(false)}
                           className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors ${
                             currentPage === item.id
                               ? 'bg-primary text-primary-foreground font-medium'
@@ -219,7 +223,7 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
                         >
                           <span className="text-lg">{item.emoji}</span>
                           <span className="text-sm">{item.label}</span>
-                        </button>
+                        </Link>
                       ))}
                     </div>
 
@@ -229,13 +233,14 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
                         <p className="text-xs font-medium text-muted-foreground mb-3 px-3">
                           ACTIONS
                         </p>
-                        <button
-                          onClick={() => handleNavClick('add-snippet')}
+                        <Link
+                          href="/add-snippet"
+                          onClick={() => setIsSheetOpen(false)}
                           className="w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors text-foreground hover:bg-muted"
                         >
                           <span className="text-lg">➕</span>
                           <span className="text-sm">Add New Snippet</span>
-                        </button>
+                        </Link>
                       </div>
                     )}
                   </nav>
@@ -247,7 +252,7 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={onToggleDarkMode}
+                        onClick={toggleDarkMode}
                         className="h-8 px-2 text-lg"
                       >
                         {isDarkMode ? '☀️' : '🌙'}
@@ -262,10 +267,10 @@ export function Header({ currentPage, onNavigate, isDarkMode, onToggleDarkMode, 
       </header>
 
       {/* Auth Modal */}
-      <AuthModal 
+      <AuthModal  
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onLogin={handleLoginSuccess}
+        handleLogin={handleLoginSuccess}
       />
     </>
   );

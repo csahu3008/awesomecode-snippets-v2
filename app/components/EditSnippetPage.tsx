@@ -20,7 +20,7 @@ interface User {
 
 interface EditSnippetPageProps {
   snippetId: string;
-  onNavigate: (page: Page, snippetId?: string) => void;
+  handleNavigate: (page: Page, snippetId?: string) => void;
   user: User | null;
 }
 
@@ -60,7 +60,7 @@ int binarySearchRecursive(vector<int>& arr, int target, int left, int right) {
   authorId: '1'
 };
 
-export function EditSnippetPage({ snippetId, onNavigate, user }: EditSnippetPageProps) {
+export function EditSnippetPage({ snippetId, handleNavigate, user }: EditSnippetPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -100,7 +100,7 @@ export function EditSnippetPage({ snippetId, onNavigate, user }: EditSnippetPage
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
             You need to be logged in to edit snippets.
           </p>
-          <Button onClick={() => onNavigate('overview')}>
+          <Button onClick={() => handleNavigate('overview')}>
             ← Back to Home
           </Button>
         </div>
@@ -117,7 +117,7 @@ export function EditSnippetPage({ snippetId, onNavigate, user }: EditSnippetPage
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
             You can only edit snippets that you created.
           </p>
-          <Button onClick={() => onNavigate('snippet-detail', snippetId)}>
+          <Button onClick={() => handleNavigate('snippet-detail', snippetId)}>
             ← Back to Snippet
           </Button>
         </div>
@@ -157,7 +157,7 @@ export function EditSnippetPage({ snippetId, onNavigate, user }: EditSnippetPage
       setIsSubmitting(false);
       
       // Navigate back to snippet detail page
-      onNavigate('snippet-detail', snippetId);
+      handleNavigate('snippet-detail', snippetId);
     }, 1000);
   };
 
@@ -171,12 +171,12 @@ export function EditSnippetPage({ snippetId, onNavigate, user }: EditSnippetPage
       setShowDeleteModal(false);
       
       // Navigate back to snippets page
-      onNavigate('snippets');
+      handleNavigate('snippets');
     }, 1000);
   };
 
   const handleCancel = () => {
-    onNavigate('snippet-detail', snippetId);
+    handleNavigate('snippet-detail', snippetId);
   };
 
   const parsedTags = form.tags

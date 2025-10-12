@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail';
 
 interface ContributorsPageProps {
-  onNavigate: (page: Page) => void;
+  handleNavigate: (page: Page) => void;
 }
 
 // Mock contributors data
@@ -87,9 +87,9 @@ const allContributors = [
   }
 ];
 
-export function ContributorsPage({ onNavigate }: ContributorsPageProps) {
+export function ContributorsPage({ handleNavigate }: ContributorsPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setcurrentPage] = useState(1);
   
   const itemsPerPage = 6;
 
@@ -126,7 +126,7 @@ export function ContributorsPage({ onNavigate }: ContributorsPageProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onNavigate('overview')}
+          onClick={() => handleNavigate('overview')}
           className="mr-4"
         >
           ← Back
@@ -244,14 +244,14 @@ export function ContributorsPage({ onNavigate }: ContributorsPageProps) {
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => setcurrentPage(Math.max(1, currentPage - 1))}
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <PaginationItem key={page}>
                   <PaginationLink
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => setcurrentPage(page)}
                     isActive={currentPage === page}
                   >
                     {page}
@@ -260,7 +260,7 @@ export function ContributorsPage({ onNavigate }: ContributorsPageProps) {
               ))}
               <PaginationItem>
                 <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => setcurrentPage(Math.min(totalPages, currentPage + 1))}
                   className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>

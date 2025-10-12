@@ -2,20 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { useGlobalContext } from "../context";
 
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail' | 'add-snippet' | 'edit-snippet';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-interface OverviewPageProps {
-  onNavigate: (page: Page, snippetId?: string) => void;
-  user: User | null;
-}
 
 // Mock data
 const latestSnippets = [
@@ -42,7 +31,8 @@ const topLanguages = [
   { id: '5', name: 'CSS', snippets: 98, color: 'bg-green-500' },
 ];
 
-export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
+export function OverviewPage() {
+  const { handleNavigate, user }=useGlobalContext()
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
       {/* Hero Section */}
@@ -59,12 +49,12 @@ export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
             <Button 
               size="lg" 
               className="font-medium"
-              onClick={() => onNavigate(user ? 'add-snippet' : 'snippets')}
+              onClick={() => handleNavigate(user ? 'add-snippet' : 'snippets')}
             >
               <span className="mr-2">{user ? '➕' : '📝'}</span>
               {user ? 'Add Snippet' : 'Submit Snippet'}
             </Button>
-            <Button variant="outline" size="lg" onClick={() => onNavigate('snippets')}>
+            <Button variant="outline" size="lg" onClick={() => handleNavigate('snippets')}>
               <span className="mr-2">🔍</span>
               Explore Snippets
             </Button>
@@ -93,7 +83,7 @@ export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => onNavigate('snippets')}
+              onClick={() => handleNavigate('snippets')}
               className="text-xs"
             >
               View All →
@@ -104,7 +94,7 @@ export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
               <div 
                 key={snippet.id}
                 className="flex flex-col space-y-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => onNavigate('snippet-detail', snippet.id)}
+                onClick={() => handleNavigate('snippet-detail', snippet.id)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <h4 className="font-medium text-sm line-clamp-2 flex-1">{snippet.title}</h4>
@@ -139,7 +129,7 @@ export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => onNavigate('contributors')}
+              onClick={() => handleNavigate('contributors')}
               className="text-xs"
             >
               View All →
@@ -179,7 +169,7 @@ export function OverviewPage({ onNavigate, user }: OverviewPageProps) {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => onNavigate('languages')}
+              onClick={() => handleNavigate('languages')}
               className="text-xs"
             >
               View All →
