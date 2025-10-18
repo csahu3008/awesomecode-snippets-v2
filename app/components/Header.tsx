@@ -1,11 +1,12 @@
 'use client';
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button } from './ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from './ui/sheet';
-import { AuthModal } from './AuthModal';
-import { useGlobalContext } from "../context";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useGlobalContext } from "../context";
+import { AuthModal } from './AuthModal';
+import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 
 type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail' | 'add-snippet' | 'edit-snippet';
 
@@ -31,6 +32,7 @@ export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const pathname=usePathname();
+  const {data:session,status}=useSession()
   const navItems = [
     { id: 'overview' as Page, label: 'Overview', emoji: '🏠', href: '/' },
     { id: 'snippets' as Page, label: 'Snippets', emoji: '📄', href: '/snippets' },
@@ -111,18 +113,18 @@ export function Header() {
             </Button>
 
             {/* Desktop Auth Section */}
-            {user ? (
+            {status === "authenticated" ? (
               <div className="hidden xl:flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                    {user.name.charAt(0).toUpperCase()}
+                    {session.user.username.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium max-w-24 truncate">{user.name}</span>
+                  <span className="text-sm font-medium max-w-24 truncate">{session.user.username}</span>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleLogout}
+                  onClick={()=>signOut({redirect:false})}
                 >
                   Logout
                 </Button>
@@ -162,21 +164,20 @@ export function Header() {
 
                   {/* User Section */}
                   <div className="p-6 pb-4 border-b">
-                    {user ? (
+                    {status === "authenticated" ?  (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-medium">
-                            {user.name.charAt(0).toUpperCase()}
+                            {session.user.username.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{user.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                            <p className="font-medium text-sm truncate">{session.user.username}</p>
                           </div>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={handleLogoutClick}
+                          onClick={()=>signOut({redirect:false})}
                           className="w-full justify-start"
                         >
                           <span className="mr-2">👋</span>

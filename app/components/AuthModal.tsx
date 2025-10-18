@@ -1,14 +1,20 @@
-'use client';
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Separator } from './ui/separator';
-import { toast } from 'sonner';
-import { useGlobalContext } from "../context";
-
+"use client";
+import { signIn, signOut } from "next-auth/react";
+import { useState } from "react";
+import { toast } from "sonner";
+import handleAuthError from "../utils";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 interface User {
   id: string;
   name: string;
@@ -21,68 +27,74 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-export function AuthModal({ isOpen, onClose}: AuthModalProps) {
-  const { handleLogin }=useGlobalContext();
+export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: ''
+    username: "",
+    password: "",
   });
   const [signupForm, setSignupForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [signupError, setSignupError] = useState<string | null>(null);
 
   const handleAuthLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError(null);
+    const response = await signIn("login", {
+      username: loginForm.username,
+      password: loginForm.password,
+      redirect: false,
+    });
 
-    // Simulate API call
-    setTimeout(() => {
-      // Mock successful login
-      const mockUser: User = {
-        id: '1',
-        name: loginForm.email.split('@')[0],
-        email: loginForm.email
-      };
-      
-      handleLogin(mockUser);
-      toast.success('Successfully logged in!');
+    if (response && (response as any).error) {
+      const msg = handleAuthError((response as any).error);
+      setLoginError(msg);
       setIsLoading(false);
-      
-      // Reset form
-      setLoginForm({ email: '', password: '' });
-    }, 1000);
+      return;
+    }else{
+      toast.success("Successfully logged in!");
+      setLoginForm({ username: "", password: "" });
+      onClose();
+    }
+    setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
+    setSignupError(null);
     e.preventDefault();
-    
+
     if (signupForm.password !== signupForm.confirmPassword) {
-      toast.error('Passwords do not match');
+      setSignupError("The passwords you entered don’t match.");
+      return;
+    }
+    const response = await signIn("signup", {
+      username: signupForm.username,
+      password: signupForm.password,
+      password2: signupForm.confirmPassword,
+      email: signupForm.email,
+      redirect: false,
+    });
+
+    if (response && (response as any).error) {
+      const msg = handleAuthError((response as any).error);
+      setSignupError(msg);
       return;
     }
 
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      // Mock successful signup
-      const mockUser: User = {
-        id: '1',
-        name: signupForm.name,
-        email: signupForm.email
-      };
-      
-      handleLogin(mockUser);
-      toast.success('Account created successfully!');
-      setIsLoading(false);
-      
-      // Reset form
-      setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
-    }, 1000);
+    toast.success("Account created successfully!");
+    setSignupForm({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setIsLoading(false);
   };
 
   const handleOAuthLogin = (provider: string) => {
@@ -111,13 +123,15 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
           <TabsContent value="login" className="space-y-4 mt-6">
             <form onSubmit={handleAuthLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
+                <Label htmlFor="login-username">username</Label>
                 <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                  id="login-username"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={loginForm.username}
+                  onChange={(e) =>
+                    setLoginForm({ ...loginForm, username: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -128,14 +142,29 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
                   type="password"
                   placeholder="Enter your password"
                   value={loginForm.password}
-                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  onChange={(e) =>
+                    setLoginForm({ ...loginForm, password: e.target.value })
+                  }
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
+            {loginError && (
+              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">
+                {loginError}
+              </p>
+            )}
+            <Button
+              type="button"
+              onClick={() => signOut({ redirect:false })}
+              className="w-full"
+              disabled={isLoading}
+            >
+              Logout
+            </Button>
 
             <div className="text-center">
               <button className="text-sm text-muted-foreground hover:text-primary">
@@ -147,13 +176,15 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
           <TabsContent value="signup" className="space-y-4 mt-6">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signup-name">Full Name</Label>
+                <Label htmlFor="signup-username">Username</Label>
                 <Input
-                  id="signup-name"
+                  id="signup-username"
                   type="text"
-                  placeholder="Enter your full name"
-                  value={signupForm.name}
-                  onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
+                  placeholder="Enter Username"
+                  value={signupForm.username}
+                  onChange={(e) =>
+                    setSignupForm({ ...signupForm, username: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -164,7 +195,9 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
                   type="email"
                   placeholder="Enter your email"
                   value={signupForm.email}
-                  onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
+                  onChange={(e) =>
+                    setSignupForm({ ...signupForm, email: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -175,7 +208,9 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
                   type="password"
                   placeholder="Create a password"
                   value={signupForm.password}
-                  onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
+                  onChange={(e) =>
+                    setSignupForm({ ...signupForm, password: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -186,14 +221,24 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
                   type="password"
                   placeholder="Confirm your password"
                   value={signupForm.confirmPassword}
-                  onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setSignupForm({
+                      ...signupForm,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create Account'}
+                {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
+            {signupError && (
+              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">
+                {signupError}
+              </p>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -206,18 +251,18 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
 
           {/* OAuth Buttons */}
           <div className="space-y-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
-              onClick={() => handleOAuthLogin('Google')}
+              onClick={() => handleOAuthLogin("Google")}
             >
               <span className="mr-2">🔍</span>
               Continue with Google
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
-              onClick={() => handleOAuthLogin('GitHub')}
+              onClick={() => handleOAuthLogin("GitHub")}
             >
               <span className="mr-2">🐙</span>
               Continue with GitHub
@@ -232,6 +277,3 @@ export function AuthModal({ isOpen, onClose}: AuthModalProps) {
     </Dialog>
   );
 }
-
-
-

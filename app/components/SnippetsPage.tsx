@@ -1,153 +1,95 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from './ui/pagination';
+"use client";
+import dayjs from "dayjs";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from "react";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Input } from "./ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
-type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail';
+type Page =
+  | "overview"
+  | "snippets"
+  | "contributors"
+  | "languages"
+  | "snippet-detail";
 
-interface SnippetsPageProps {
-  handleNavigate: (page: Page, snippetId?: string) => void;
-}
+import relativeTime from "dayjs/plugin/relativeTime";
 
-// Mock data for snippets
-const allSnippets = [
-  {
-    id: '1',
-    title: 'Binary Search Implementation',
-    description: 'Efficient binary search algorithm with recursive and iterative approaches.',
-    language: 'C++',
-    author: 'अनिल कुमार',
-    date: '2024-08-05',
-    stars: 24,
-    views: 156,
-    tags: ['algorithm', 'search', 'recursion']
-  },
-  {
-    id: '2',
-    title: 'React Custom Hook for API Calls',
-    description: 'Reusable custom hook for handling API requests with loading states.',
-    language: 'JavaScript',
-    author: 'प्रिया शर्मा',
-    date: '2024-08-05',
-    stars: 18,
-    views: 89,
-    tags: ['react', 'hooks', 'api']
-  },
-  {
-    id: '3',
-    title: 'Python Data Validation Utils',
-    description: 'Common utility functions for validating different types of data.',
-    language: 'Python',
-    author: 'राहुल गुप्ता',
-    date: '2024-08-04',
-    stars: 32,
-    views: 203,
-    tags: ['validation', 'utilities', 'data']
-  },
-  {
-    id: '4',
-    title: 'CSS Grid Layout Helper',
-    description: 'Responsive grid layout component with customizable breakpoints.',
-    language: 'CSS',
-    author: 'सुनीता सिंह',
-    date: '2024-08-04',
-    stars: 15,
-    views: 78,
-    tags: ['css', 'grid', 'responsive']
-  },
-  {
-    id: '5',
-    title: 'MySQL Query Optimization',
-    description: 'Best practices for optimizing complex MySQL queries.',
-    language: 'SQL',
-    author: 'विकास अग्रवाल',
-    date: '2024-08-03',
-    stars: 28,
-    views: 134,
-    tags: ['sql', 'optimization', 'database']
-  },
-  {
-    id: '6',
-    title: 'TypeScript Interface Generator',
-    description: 'Automatically generate TypeScript interfaces from JSON data.',
-    language: 'TypeScript',
-    author: 'नेहा पटेल',
-    date: '2024-08-03',
-    stars: 21,
-    views: 92,
-    tags: ['typescript', 'generator', 'json']
-  }
-];
-
-export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('all');
-  const [sortBy, setSortBy] = useState('latest');
-  const [currentPage, setCurrentPage] = useState(1);
-  const router = useMemo(() => ({
-    push: (path: string) => {
-      // Simulate navigation
-      console.log(`Navigating to ${path}`);
+dayjs.extend(relativeTime);
+export function SnippetsPage({ snippets ,paginationConfig,languageChoices}) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+  const languages=[{key:'all',value:'All Languages'},...languageChoices.languages]
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('query')?.toString() || '');
+  const [selectedLanguage, setSelectedLanguage] = useState(searchParams.get('language')?.toString());
+  const initialRef=useRef(true)
+  // delete page before appending it to paginated pages
+  const paginatedParams = new URLSearchParams(searchParams);
+  paginatedParams.delete('page')
+  useEffect(()=>{
+    if(initialRef.current){
+      initialRef.current=false
+      return;
     }
-  }), []);
-  const itemsPerPage = 4;
-  const languages = ['all', 'JavaScript', 'Python', 'C++', 'CSS', 'SQL', 'TypeScript'];
-
-  // Filter and sort snippets
-  const filteredSnippets = allSnippets
-    .filter(snippet => {
-      const matchesSearch = snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           snippet.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           snippet.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesLanguage = selectedLanguage === 'all' || snippet.language === selectedLanguage;
-      return matchesSearch && matchesLanguage;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'popular':
-          return b.stars - a.stars;
-        case 'views':
-          return b.views - a.views;
-        case 'latest':
-        default:
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }
-    });
-
-  const totalPages = Math.ceil(filteredSnippets.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedSnippets = filteredSnippets.slice(startIndex, startIndex + itemsPerPage);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
+    const params = new URLSearchParams(searchParams);
+    if(selectedLanguage){
+      params.set('language',selectedLanguage)
+    }else{
+      params.delete('language')
+    }
+    if(searchQuery){
+      params.set('query',searchQuery)
+    }else{
+      params.delete('query')
+    }
+    if(searchQuery || selectedLanguage){
+      params.delete('page')
+    }
+    replace(`${pathname}?${params.toString()}`);
+  },[selectedLanguage,searchQuery])
+  const { totalSnippets, currentPage = 1, itemsPerPage } = paginationConfig;
+  const totalPages = Math.ceil(totalSnippets / itemsPerPage);
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="flex items-center mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => handleNavigate('overview')}
-          className="mr-4"
-        >
-          ← Back
-        </Button>
+        <Link href={"/"}>
+          <Button variant="ghost" size="sm" className="mr-4">
+            ← Back
+          </Button>
+        </Link>
         <div>
           <h1 className="text-xl sm:text-2xl font-mono mb-1 flex items-center gap-2">
             <span>📄</span>
             Code Snippets
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Browse {filteredSnippets.length} amazing code snippets from our community
+            Browse {snippets.length} amazing code snippets from our
+            community
           </p>
         </div>
       </div>
@@ -155,7 +97,9 @@ export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-3 text-muted-foreground text-sm">🔍</span>
+          <span className="absolute left-3 top-3 text-muted-foreground text-sm">
+            🔍
+          </span>
           <Input
             placeholder="Search snippets, tags, or descriptions..."
             value={searchQuery}
@@ -169,85 +113,82 @@ export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
           </SelectTrigger>
           <SelectContent>
             {languages.map((lang) => (
-              <SelectItem key={lang} value={lang}>
-                {lang === 'all' ? 'All Languages' : lang}
+              <SelectItem key={lang.key} value={lang.key}>
+                {lang.key === "all" ? "All Languages" : lang.value}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-40 text-sm">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">Latest</SelectItem>
-            <SelectItem value="popular">Most Stars</SelectItem>
-            <SelectItem value="views">Most Views</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Snippets Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {paginatedSnippets.map((snippet) => (
-          <Card 
-            key={snippet.id} 
-            className="hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => router.push(`/snippet-detail/${snippet.id}`)}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base sm:text-lg mb-2 break-words">{snippet.title}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-sm">
-                    {snippet.description}
-                  </CardDescription>
-                </div>
-                <Badge variant="secondary" className="text-xs flex-shrink-0">
-                  {snippet.language}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-1 mb-4">
-                {snippet.tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    #{tag}
+        {snippets.map((snippet) => (
+          <Link key={snippet.id} href={`/snippet-detail/${snippet.id}`}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base sm:text-lg mb-2 break-words">
+                      {snippet.title}
+                    </CardTitle>
+                    {/* excerpt needs to be added later */}
+                    <CardDescription className="line-clamp-2 text-sm">
+                      {snippet.description}
+                    </CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">
+                    {snippet.language}
                   </Badge>
-                ))}
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center space-x-3 min-w-0">
-                  <span className="flex items-center">
-                    <span className="mr-1">👤</span>
-                    <span className="truncate">{snippet.author}</span>
-                  </span>
-                  <div className="flex items-center whitespace-nowrap">
-                    <span className="mr-1">📅</span>
-                    {formatDate(snippet.date)}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {Array.isArray(snippet.tags) && snippet.tags?.map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-xs">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <span className="flex items-center">
+                      <span className="mr-1">👤</span>
+                      <span className="truncate">{snippet.coder.username}</span>
+                    </span>
+                    <div className="flex items-center whitespace-nowrap">
+                      <span className="mr-1">📅</span>
+                      {dayjs(snippet.updated_date).format("DD MMM YYYY")}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 flex-shrink-0">
+                    {snippet.starts && (
+                      <div className="flex items-center">
+                        <span className="mr-1">⭐</span>
+                        {snippet.stars}
+                      </div>
+                    )}
+                    {snippet.views && (
+                      <div className="flex items-center">
+                        <span className="mr-1">👁️</span>
+                        {snippet.views}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 flex-shrink-0">
-                  <div className="flex items-center">
-                    <span className="mr-1">⭐</span>
-                    {snippet.stars}
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-1">👁️</span>
-                    {snippet.views}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
       {/* No Results */}
-      {filteredSnippets.length === 0 && (
+      {snippets.length === 0 && (
         <div className="text-center py-12">
           <span className="text-4xl mb-4 block">📄</span>
-          <h3 className="text-base sm:text-lg font-medium mb-2">No snippets found</h3>
+          <h3 className="text-base sm:text-lg font-medium mb-2">
+            No snippets found
+          </h3>
           <p className="text-sm text-muted-foreground">
             Try adjusting your search or filter criteria
           </p>
@@ -257,28 +198,36 @@ export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8">
-          <Pagination>
+          <Pagination >
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                />
+                <PaginationPrevious
+                href={`/snippets?page=${Math.max(1, currentPage - 1)}&${paginatedParams.toString()}`}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                  }
+                  />
               </PaginationItem>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    onClick={() => setCurrentPage(page)}
-                    isActive={currentPage === page}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href={`/snippets?page=${page}&${paginatedParams.toString()}`}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
               <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                <PaginationNext
+                href={`/snippets?page=${Math.min(totalPages, currentPage + 1)}&${paginatedParams.toString()}`}
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -288,6 +237,3 @@ export function SnippetsPage({ handleNavigate }: SnippetsPageProps) {
     </div>
   );
 }
-
-
-

@@ -1,13 +1,16 @@
-'use client';
 import React from "react";
 import { ContributorsPage } from "../components/ContributorsPage";
-import { useGlobalContext } from "../context";
+import { axiosClient } from "../api-client";
 
-export default function Page() {
-  const { handleNavigate } = useGlobalContext();
+export default async function Page() {
+  let allContributors = await axiosClient({
+    method: "get",
+    url: "top-contributors",
+  });
+  allContributors = allContributors.data;
   return (
     <>
-      <ContributorsPage handleNavigate={handleNavigate} />
+      <ContributorsPage allContributors={allContributors}/>
     </>
   );
 }

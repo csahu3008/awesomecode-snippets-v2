@@ -1,13 +1,17 @@
-'use client';
 import React from "react";
 import { AddSnippetPage } from "../components/AddSnippetPage";
 import { useGlobalContext } from "../context";
+import { axiosClient } from "../api-client";
 
-export default function Page() {
-  const { handleNavigate, user } = useGlobalContext();
+export default async function Page() {
+  const resp = await axiosClient({
+      method: "get",
+      url: "language-options",
+    });
+    const languageChoices = resp.data;
   return (
     <>
-      <AddSnippetPage handleNavigate={handleNavigate} user={user} />
+      <AddSnippetPage languageChoices={languageChoices}/>
     </>
   );
 }

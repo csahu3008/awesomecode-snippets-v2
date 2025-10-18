@@ -1,16 +1,26 @@
-'use client';
 import React from "react";
 import { EditSnippetPage } from "@/app/components/EditSnippetPage";
-import { useGlobalContext } from "@/app/context";
+import { axiosClient } from "@/app/api-client";
 
-export default function Page({ params }: { params: { id: string } }) {
-  const { handleNavigate, user } = useGlobalContext();
+export default async function Page({params}) {
+  const { id } = await params;
+   const response = await axiosClient({
+      method: "get",
+      url: `snippets/${id}/`,
+    });
+    const detailedArticle = response.data;
+    const resp = await axiosClient({
+      method: "get",
+      url: "language-options",
+    });
+    const languageChoices = resp.data;
+    console.log({detailedArticle})
   return (
     <>
       <EditSnippetPage
-        snippetId={params.id}
-        handleNavigate={handleNavigate}
-        user={user}
+        snippetId={id}
+        detailedArticle={detailedArticle}
+        languageChoices={languageChoices}
       />
     </>
   );

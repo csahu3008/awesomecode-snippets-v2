@@ -1,16 +1,33 @@
-'use client';
-import React from "react";
+import { axiosClient } from "@/app/api-client";
 import { SnippetDetailPage } from "../../components/SnippetDetailPage";
-import { useGlobalContext } from "../../context";
 
-export default function Page({ params }: { params: { id: string } }) {
-  const { handleNavigate, user } = useGlobalContext();
+export default async function Page({ params }) {
+  const { id } = await params;
+  const response = await axiosClient({
+    method: "get",
+    url: `snippets/${id}/`,
+  });
+  console.log("response",response)
+  const detailedArticle = response.data;
+  const related = await axiosClient({
+    method: "get",
+    url: "snippets",
+  });
+  const relatedArticles = related.data.results.slice(0, 3);
+
+  const commentsResp=await axiosClient({
+    method:'get',
+    url:`comments/?snippet_id=${id}`
+  })
+  const comments=commentsResp.data.results
+  console.log("All Comments",comments)
   return (
     <>
-      <SnippetDetailPage 
-        snippetId={params.id} 
-        handleNavigate={handleNavigate}
-        user={user}
+      <SnippetDetailPage
+        snippetId={id}
+        article={detailedArticle}
+        relatedArticles={relatedArticles}
+        allComments={comments}
       />
     </>
   );

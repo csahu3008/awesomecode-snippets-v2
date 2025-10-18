@@ -1,13 +1,15 @@
-'use client';
-import React from "react";
+import { axiosClient } from "../api-client";
 import { LanguagesPage } from "../components/LanguagesPage";
-import { useGlobalContext } from "../context";
 
-export default function Page() {
-  const { handleNavigate } = useGlobalContext();
+export default async function Page() {
+     let languageStats = await axiosClient({
+    method: "get",
+    url: "languages",
+  });
+  languageStats = languageStats.data;
   return (
     <>
-      <LanguagesPage handleNavigate={handleNavigate} />
+      <LanguagesPage languageStats={languageStats} />
     </>
   );
 }

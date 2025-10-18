@@ -21,13 +21,13 @@ import { SessionProvider } from "next-auth/react";
 // };
 
 export default function RootLayout({
-  children,session, ...pageProps  
+  children,
+  session,
+  ...pageProps
 }: Readonly<{
   children: React.ReactNode;
   session: Session | null;
 }>) {
-  
-  
   // const [currentPage, setcurrentPage] = useState<Page>('overview');
   //   const [selectedSnippetId, setSelectedSnippetId] = useState<string>('');
   //   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -74,10 +74,10 @@ export default function RootLayout({
   //     setUser(null);
   //   };
   return (
-    <html lang="en" className="light">
-      <GlobalContextProvider>
-        <body>
-          <ProviderWrapper session={session}>
+    <html lang="en" className="dark">
+      <ProviderWrapper session={session}>
+        <GlobalContextProvider>
+          <body>
             {/* <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}> */}
             <div
               className={`min-h-screen bg-background text-foreground ${
@@ -88,9 +88,9 @@ export default function RootLayout({
               <main className="w-full">{children}</main>
               <Toaster />
             </div>
-          </ProviderWrapper>
-        </body>
-      </GlobalContextProvider>
+          </body>
+        </GlobalContextProvider>
+      </ProviderWrapper>
     </html>
   );
 }

@@ -21,7 +21,7 @@ export default function Home() {
             });
             setResponse(JSON.stringify(response.data));
         } catch (error: any) {
-            setResponse(error.message);
+            setResponse(error.response.data);
         }
     };
 
