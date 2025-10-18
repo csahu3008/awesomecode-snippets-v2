@@ -202,7 +202,7 @@ export function SnippetsPage({ snippets ,paginationConfig,languageChoices}) {
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                href={`/snippets?page=${Math.max(1, currentPage - 1)}&${paginatedParams.toString()}`}
+                href={`/snippets?page=${Math.max(1, currentPage - 1)}${paginatedParams.toString().length>0?`&${paginatedParams.toString()}`:''}`}
                 className={
                   currentPage === 1 ? "pointer-events-none opacity-50" : ""
                   }
@@ -212,7 +212,7 @@ export function SnippetsPage({ snippets ,paginationConfig,languageChoices}) {
                 (page) => (
                   <PaginationItem key={page}>
                     <PaginationLink
-                      href={`/snippets?page=${page}&${paginatedParams.toString()}`}
+                      href={`/snippets?page=${page}${paginatedParams.toString().length>0?`&${paginatedParams.toString()}`:''}`}
                       isActive={currentPage === page}
                     >
                       {page}
@@ -222,7 +222,7 @@ export function SnippetsPage({ snippets ,paginationConfig,languageChoices}) {
               )}
               <PaginationItem>
                 <PaginationNext
-                href={`/snippets?page=${Math.min(totalPages, currentPage + 1)}&${paginatedParams.toString()}`}
+                href={`/snippets?page=${Math.min(totalPages, currentPage + 1)}${paginatedParams.toString().length>0?`&${paginatedParams.toString()}`:''}`}
                   className={
                     currentPage === totalPages
                       ? "pointer-events-none opacity-50"

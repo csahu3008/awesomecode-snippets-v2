@@ -1,9 +1,5 @@
-'use client';
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
-// const [currentPage, setcurrentPage] = useState<Page>('overview');
-//     const [selectedSnippetId, setSelectedSnippetId] = useState<string>('');
-//     const [isDarkMode, setIsDarkMode] = useState(false);
-//     const [user, setUser] = useState<User | null>(null);
 interface GlobalContextType {
   currentPage: Page;
   selectedSnippetId: string;
@@ -47,8 +43,11 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", isDarkMode ? "light" : "dark");
   };
-
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem("theme") === "dark");
+  }, []);
   return (
     <GlobalContext.Provider
       value={{
@@ -56,7 +55,7 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
         selectedSnippetId,
         isDarkMode,
         handleNavigate,
-        toggleDarkMode
+        toggleDarkMode,
       }}
     >
       {children}
@@ -67,7 +66,9 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
 const useGlobalContext = () => {
   const context = useContext(GlobalContext);
   if (!context) {
-    throw new Error("useGlobalContext must be used within a GlobalContextProvider");
+    throw new Error(
+      "useGlobalContext must be used within a GlobalContextProvider"
+    );
   }
   return context;
 };

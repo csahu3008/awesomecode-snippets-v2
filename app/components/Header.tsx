@@ -260,7 +260,7 @@ export function Header() {
                           href={item.href}
                           onClick={() => setIsSheetOpen(false)}
                           className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors ${
-                            currentPage === item.id
+                            pathname === item.href
                               ? "bg-primary text-primary-foreground font-medium"
                               : "text-foreground hover:bg-muted"
                           }`}
