@@ -4,14 +4,14 @@ import { useGlobalContext } from "../context";
 import { axiosClient } from "../api-client";
 
 export default async function Page() {
-  const resp = await axiosClient({
-      method: "get",
-      url: "language-options",
-    });
-    const languageChoices = resp.data;
+  const languageChoicesResp = await axiosClient({
+    method: "get",
+    url: "language-options",
+  });
+  const languageChoices = languageChoicesResp.data;
   return (
     <>
-      <AddSnippetPage languageChoices={languageChoices}/>
+      <AddSnippetPage languageChoices={languageChoices} />
     </>
   );
 }

@@ -1,7 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import dayjs from "dayjs";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -10,13 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
-import { ConfirmationModal } from "./ConfirmationModal";
-import { toast } from "sonner";
-import Link from "next/link";
-import dayjs from "dayjs";
 
 type Page =
   | "overview"
@@ -62,23 +62,24 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useSession } from "next-auth/react";
 import { axiosClient } from "../api-client";
 
-// Enable the plugin
+// Enable the plugin => provides fromNow() functionality
 dayjs.extend(relativeTime);
 export function SnippetDetailPage({
   snippetId,
   article,
   relatedArticles,
-  allComments
+  allComments,
 }: SnippetDetailPageProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const user = (session as any)?.user ?? null;
-  const sessionUsername: string | null = (session as any)?.user?.username || null;
+  const sessionUsername: string | null =
+    (session as any)?.user?.username || null;
   const articleData = article ?? {};
   // Check if current session owns this snippet
   const isOwner =
     status === "authenticated" &&
-  sessionUsername === (articleData?.coder?.username || null)
+    sessionUsername === (articleData?.coder?.username || null)
       ? true
       : false;
   const [newComment, setNewComment] = useState("");
@@ -111,28 +112,39 @@ export function SnippetDetailPage({
     toast.success("Code downloaded!");
   };
 
-  const handleBookmarkToggle =async () => {
-    
+  const handleBookmarkToggle = async () => {
     try {
-      const resp = await axiosClient.post(`snippets/${snippetId}/bookmark/`,{}, {
-        headers: { Authorization: 'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || '') }
-      });
-      console.log("resp.status",resp.data.status)
-      if(resp.data.status=='bookmark added'){
+      const resp = await axiosClient.post(
+        `snippets/${snippetId}/bookmark/`,
+        {},
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              ((session as any)?.accessToken ||
+                (session as any)?.access_token ||
+                ""),
+          },
+        }
+      );
+      if (resp.data.status == "bookmark added") {
         // bookmark added
         setIsBookmarked(true);
         toast.success("Added into your bookmarks !");
-      }else{
+      } else {
         // bookmark removed
         setIsBookmarked(false);
         toast.success("Removed from your bookmarks !");
       }
       // success
     } catch (error: any) {
-      console.error('Error while Bookmark action:', error);
-      const msg = error?.response?.data?.message || error.message || 'Failed to delete snippet';
+      console.error("Error while Bookmark action:", error);
+      const msg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to delete snippet";
       toast.error(msg);
-    } 
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -155,51 +167,58 @@ export function SnippetDetailPage({
     window.open(twitterUrl, "_blank");
   };
 
-  const handleCommentSubmit =async (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (status!=='authenticated'){
+    if (status !== "authenticated") {
       toast.error("Please login to comment");
       return;
     }
 
     if (!newComment.trim()) return;
 
-    const comment= {
+    const comment = {
       snippet: snippetId,
       detail: newComment.trim(),
     };
-     try {
-      const resp = await axiosClient.post(`comments/`,comment, {
-        headers: { Authorization: 'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || '') }
+    try {
+      const resp = await axiosClient.post(`comments/`, comment, {
+        headers: {
+          Authorization:
+            "Bearer " +
+            ((session as any)?.accessToken ||
+              (session as any)?.access_token ||
+              ""),
+        },
       });
-      console.log("resp.status",resp.data)
-      // if(resp.data.status=='bookmark added'){
-      //   // bookmark added
-      //   setIsBookmarked(true);
-      //   toast.success("Added into your bookmarks !");
-      // }else{
-      //   // bookmark removed
-      //   setIsBookmarked(false);
-      //   toast.success("Removed from your bookmarks !");
-      // }
-      // success
-      setComments([comment, ...comments]);
-      setNewComment("");
-      toast.success("Comment added successfully!");
+      if (resp.status === 201) {
+        setComments([{ ...comment, user: session.user }, ...comments]);
+        setNewComment("");
+        toast.success("Comment added successfully!");
+      } else {
+        throw new Error("something went wrong");
+      }
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error.message || 'Failed to delete snippet';
-      console.error(msg,"Error");
+      const msg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to add comments";
+      console.error(msg, "Error");
       toast.error("Can't add new comments kindly try it later");
-    } 
-
+    }
   };
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
       const resp = await axiosClient.delete(`snippets/${snippetId}/`, {
-        headers: { Authorization: 'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || '') }
+        headers: {
+          Authorization:
+            "Bearer " +
+            ((session as any)?.accessToken ||
+              (session as any)?.access_token ||
+              ""),
+        },
       });
 
       // success
@@ -207,14 +226,18 @@ export function SnippetDetailPage({
       setShowDeleteModal(false);
       router.push("/snippets");
     } catch (error: any) {
-      console.error('Delete snippet error:', error);
-      const msg = error?.response?.data?.message || error.message || 'Failed to delete snippet';
+      console.error("Delete snippet error:", error);
+      const msg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to delete snippet";
       toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
   };
-  const relatedArticlesList = relatedArticles?.filter(item=>item.id!==articleData.id) || [];
+  const relatedArticlesList =
+    relatedArticles?.filter((item) => item.id !== articleData.id) || [];
   return (
     <>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -297,9 +320,12 @@ export function SnippetDetailPage({
                 </div>
               </CardHeader>
               <CardContent>
-                  {/* content section might need to upgrade styling later */}
-                <div dangerouslySetInnerHTML={{__html:articleData?.description??''}} >
-                </div>
+                {/* content section might need to upgrade styling later */}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: articleData?.description ?? "",
+                  }}
+                ></div>
               </CardContent>
             </Card>
 
@@ -417,7 +443,7 @@ export function SnippetDetailPage({
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Add Comment Form */}
-                {status==='authenticated' ? (
+                {status === "authenticated" ? (
                   <form onSubmit={handleCommentSubmit} className="space-y-3">
                     <Textarea
                       placeholder="Share your thoughts about this snippet..."
@@ -449,27 +475,29 @@ export function SnippetDetailPage({
 
                 {/* Comments List */}
                 <div className="space-y-4">
-                  {comments && comments.length>0 && comments.map((comment,index) => (
-                    <div key={index} className="flex space-x-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
-                        {comment.user?.username?.charAt(0)?.toUpperCase()}
-                      </div>
-                      <div className="flex-1 space-y-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-sm truncate">
-                            {comment.user?.username}
-                          </span>
-                          <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
-                            <span className="mr-1">⏰</span>
-                            posted {dayjs(comment.date_commented).fromNow()}
-                          </span>
+                  {comments &&
+                    comments.length > 0 &&
+                    comments.map((comment, index) => (
+                      <div key={index} className="flex space-x-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+                          {comment.user?.username?.charAt(0)?.toUpperCase()}
                         </div>
-                        <p className="text-sm leading-relaxed break-words">
-                          {comment.detail}
-                        </p>
+                        <div className="flex-1 space-y-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-sm truncate">
+                              {comment.user?.username}
+                            </span>
+                            <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
+                              <span className="mr-1">⏰</span>
+                              posted {dayjs(comment.date_commented).fromNow()}
+                            </span>
+                          </div>
+                          <p className="text-sm leading-relaxed break-words">
+                            {comment.detail}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
 
                 {comments.length === 0 && (
@@ -496,19 +524,17 @@ export function SnippetDetailPage({
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Bookmark Button */}
-                {
-                  status==='authenticated'&&(
-                    <Button
+                {status === "authenticated" && (
+                  <Button
                     className="w-full mb-3"
                     variant={isBookmarked ? "default" : "outline"}
                     onClick={handleBookmarkToggle}
                     size="sm"
-                    >
-                  <span className="mr-2">{isBookmarked ? "🔖" : "📌"}</span>
-                  {isBookmarked ? "Bookmarked" : "Bookmark"}
-                </Button>
-                  )
-                }
+                  >
+                    <span className="mr-2">{isBookmarked ? "🔖" : "📌"}</span>
+                    {isBookmarked ? "Bookmarked" : "Bookmark"}
+                  </Button>
+                )}
 
                 {/* Owner Actions */}
                 {isOwner && (

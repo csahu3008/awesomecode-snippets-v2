@@ -3,24 +3,26 @@ import { SnippetDetailPage } from "../../components/SnippetDetailPage";
 
 export default async function Page({ params }) {
   const { id } = await params;
-  const response = await axiosClient({
+
+  // detailed article
+  const detailResp = await axiosClient({
     method: "get",
     url: `snippets/${id}/`,
   });
-  console.log("response",response)
-  const detailedArticle = response.data;
-  const related = await axiosClient({
+  const detailedArticle = detailResp.data;
+  // fetch comments as per per article
+  const commentsResp = await axiosClient({
+    method: "get",
+    url: `comments?snippet_id=${id}`,
+  });
+  const comments = commentsResp.data.results;
+
+  // fetch related articles
+  const relatedResp = await axiosClient({
     method: "get",
     url: "snippets",
   });
-  const relatedArticles = related.data.results.slice(0, 3);
-
-  const commentsResp=await axiosClient({
-    method:'get',
-    url:`comments/?snippet_id=${id}`
-  })
-  const comments=commentsResp.data.results
-  console.log("All Comments",comments)
+  const relatedArticles = relatedResp.data.results.slice(0, 3);
   return (
     <>
       <SnippetDetailPage

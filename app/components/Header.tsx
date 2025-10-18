@@ -1,14 +1,27 @@
-'use client';
+"use client";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useGlobalContext } from "../context";
-import { AuthModal } from './AuthModal';
-import { Button } from './ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { AuthModal } from "./AuthModal";
+import { Button } from "./ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
 
-type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail' | 'add-snippet' | 'edit-snippet';
+type Page =
+  | "overview"
+  | "snippets"
+  | "contributors"
+  | "languages"
+  | "snippet-detail"
+  | "add-snippet"
+  | "edit-snippet";
 
 interface User {
   id: string;
@@ -28,16 +41,39 @@ interface HeaderProps {
 }
 
 export function Header() {
-  const { currentPage, handleNavigate, isDarkMode, toggleDarkMode, user, handleLogin, handleLogout }=useGlobalContext();
+  const {
+    currentPage,
+    handleNavigate,
+    isDarkMode,
+    toggleDarkMode,
+    user,
+    handleLogin,
+    handleLogout,
+  } = useGlobalContext();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const pathname=usePathname();
-  const {data:session,status}=useSession()
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
   const navItems = [
-    { id: 'overview' as Page, label: 'Overview', emoji: '🏠', href: '/' },
-    { id: 'snippets' as Page, label: 'Snippets', emoji: '📄', href: '/snippets' },
-    { id: 'contributors' as Page, label: 'Top Contributors', emoji: '🌟', href: '/contributors' },
-    { id: 'languages' as Page, label: 'Top Languages', emoji: '🧠', href: '/languages' },
+    { id: "overview" as Page, label: "Overview", emoji: "🏠", href: "/" },
+    {
+      id: "snippets" as Page,
+      label: "Snippets",
+      emoji: "📄",
+      href: "/snippets",
+    },
+    {
+      id: "contributors" as Page,
+      label: "Top Contributors",
+      emoji: "🌟",
+      href: "/contributors",
+    },
+    {
+      id: "languages" as Page,
+      label: "Top Languages",
+      emoji: "🧠",
+      href: "/languages",
+    },
   ];
 
   const handleNavClick = (page: Page) => {
@@ -60,13 +96,14 @@ export function Header() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
-          <Link 
-            href="/"
-            className="flex items-center space-x-2"
-          >
+          <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl">📄</span>
-            <span className="font-mono tracking-tight hidden sm:inline text-lg">AwesomeCodeSnippets</span>
-            <span className="font-mono tracking-tight sm:hidden text-lg">ACS</span>
+            <span className="font-mono tracking-tight hidden sm:inline text-lg">
+              AwesomeCodeSnippets
+            </span>
+            <span className="font-mono tracking-tight sm:hidden text-lg">
+              ACS
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -77,8 +114,8 @@ export function Header() {
                 href={item.href}
                 className={`text-sm transition-colors hover:text-primary px-3 py-2 rounded-md ${
                   pathname === item.href
-                    ? 'text-primary font-medium bg-primary/10'
-                    : 'text-muted-foreground hover:bg-muted'
+                    ? "text-primary font-medium bg-primary/10"
+                    : "text-muted-foreground hover:bg-muted"
                 }`}
               >
                 <span className="mr-2">{item.emoji}</span>
@@ -107,9 +144,11 @@ export function Header() {
               size="sm"
               onClick={toggleDarkMode}
               className="h-9 w-9 px-0 text-lg"
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={
+                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+              }
             >
-              {isDarkMode ? '☀️' : '🌙'}
+              {isDarkMode ? "☀️" : "🌙"}
             </Button>
 
             {/* Desktop Auth Section */}
@@ -119,12 +158,14 @@ export function Header() {
                   <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
                     {session.user.username.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium max-w-24 truncate">{session.user.username}</span>
+                  <span className="text-sm font-medium max-w-24 truncate">
+                    {session.user.username}
+                  </span>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={()=>signOut({redirect:false})}
+                  onClick={() => signOut({ redirect: false })}
                 >
                   Logout
                 </Button>
@@ -143,9 +184,9 @@ export function Header() {
             {/* Mobile Menu */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="xl:hidden h-9 w-9 px-0 text-lg"
                   title="Open menu"
                 >
@@ -164,20 +205,22 @@ export function Header() {
 
                   {/* User Section */}
                   <div className="p-6 pb-4 border-b">
-                    {status === "authenticated" ?  (
+                    {status === "authenticated" ? (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-medium">
                             {session.user.username.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{session.user.username}</p>
+                            <p className="font-medium text-sm truncate">
+                              {session.user.username}
+                            </p>
                           </div>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={()=>signOut({redirect:false})}
+                          onClick={() => signOut({ redirect: false })}
                           className="w-full justify-start"
                         >
                           <span className="mr-2">👋</span>
@@ -218,8 +261,8 @@ export function Header() {
                           onClick={() => setIsSheetOpen(false)}
                           className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors ${
                             currentPage === item.id
-                              ? 'bg-primary text-primary-foreground font-medium'
-                              : 'text-foreground hover:bg-muted'
+                              ? "bg-primary text-primary-foreground font-medium"
+                              : "text-foreground hover:bg-muted"
                           }`}
                         >
                           <span className="text-lg">{item.emoji}</span>
@@ -249,14 +292,16 @@ export function Header() {
                   {/* Footer */}
                   <div className="p-6 pt-4 border-t">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Theme</span>
+                      <span className="text-xs text-muted-foreground">
+                        Theme
+                      </span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={toggleDarkMode}
                         className="h-8 px-2 text-lg"
                       >
-                        {isDarkMode ? '☀️' : '🌙'}
+                        {isDarkMode ? "☀️" : "🌙"}
                       </Button>
                     </div>
                   </div>
@@ -268,7 +313,7 @@ export function Header() {
       </header>
 
       {/* Auth Modal */}
-      <AuthModal  
+      <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         handleLogin={handleLoginSuccess}
@@ -276,6 +321,3 @@ export function Header() {
     </>
   );
 }
-
-
-

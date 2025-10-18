@@ -1,7 +1,10 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import Link from "next/link";
+import { useState } from "react";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
   Card,
   CardContent,
@@ -9,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Badge } from "./ui/badge";
+import { Input } from "./ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -18,7 +21,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "./ui/pagination";
-import Link from "next/link";
 
 type Page =
   | "overview"
@@ -26,84 +28,8 @@ type Page =
   | "contributors"
   | "languages"
   | "snippet-detail";
-import relativeTime from "dayjs/plugin/relativeTime";
-import dayjs from "dayjs";
 
 dayjs.extend(relativeTime);
-const allContributors = [
-  {
-    id: "1",
-    name: "अनिल कुमार",
-    snippets: 42,
-    stars: 156,
-    joinDate: "2023-12-15",
-    topLanguages: ["C++", "Python", "JavaScript"],
-    recentActivity: "2 hours ago",
-  },
-  {
-    id: "2",
-    name: "प्रिया शर्मा",
-    snippets: 38,
-    stars: 142,
-    joinDate: "2024-01-20",
-    topLanguages: ["JavaScript", "React", "CSS"],
-    recentActivity: "5 hours ago",
-  },
-  {
-    id: "3",
-    name: "राहुल गुप्ता",
-    snippets: 35,
-    stars: 128,
-    joinDate: "2023-11-08",
-    topLanguages: ["Python", "Django", "SQL"],
-    recentActivity: "1 day ago",
-  },
-  {
-    id: "4",
-    name: "सुनीता सिंह",
-    snippets: 29,
-    stars: 98,
-    joinDate: "2024-02-14",
-    topLanguages: ["CSS", "HTML", "JavaScript"],
-    recentActivity: "2 days ago",
-  },
-  {
-    id: "5",
-    name: "विकास अग्रवाल",
-    snippets: 24,
-    stars: 87,
-    joinDate: "2023-10-30",
-    topLanguages: ["SQL", "Python", "R"],
-    recentActivity: "3 days ago",
-  },
-  {
-    id: "6",
-    name: "नेहा पटेल",
-    snippets: 21,
-    stars: 73,
-    joinDate: "2024-03-01",
-    topLanguages: ["TypeScript", "React", "Node.js"],
-    recentActivity: "1 week ago",
-  },
-  {
-    id: "7",
-    name: "अमित जैन",
-    snippets: 19,
-    stars: 65,
-    joinDate: "2024-01-05",
-    topLanguages: ["Java", "Spring", "MySQL"],
-    recentActivity: "1 week ago",
-  },
-  {
-    id: "8",
-    name: "पूजा मेहता",
-    snippets: 17,
-    stars: 58,
-    joinDate: "2024-04-12",
-    topLanguages: ["PHP", "Laravel", "Vue.js"],
-    recentActivity: "2 weeks ago",
-  },
-];
 
 export function ContributorsPage({ allContributors }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,7 +52,7 @@ export function ContributorsPage({ allContributors }) {
     startIndex,
     startIndex + itemsPerPage
   );
-
+  // need to take care with when searching
   const getRankEmoji = (index: number) => {
     if (index === 0) return "🥇";
     if (index === 1) return "🥈";
@@ -189,7 +115,8 @@ export function ContributorsPage({ allContributors }) {
                         {contributor.username}
                       </CardTitle>
                       <CardDescription className="text-xs sm:text-sm">
-                        Member since {dayjs(contributor.date_joined).format('MMM YYYY')}
+                        Member since{" "}
+                        {dayjs(contributor.date_joined).format("MMM YYYY")}
                       </CardDescription>
                     </div>
                   </div>

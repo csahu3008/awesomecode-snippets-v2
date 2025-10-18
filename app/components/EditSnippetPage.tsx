@@ -1,19 +1,38 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { ConfirmationModal } from './ConfirmationModal';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Textarea } from './ui/textarea';
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Textarea } from "./ui/textarea";
 import { useSession } from "next-auth/react";
-import { axiosClient } from '../api-client';
+import { axiosClient } from "../api-client";
 
-type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail' | 'add-snippet' | 'edit-snippet';
+type Page =
+  | "overview"
+  | "snippets"
+  | "contributors"
+  | "languages"
+  | "snippet-detail"
+  | "add-snippet"
+  | "edit-snippet";
 
 interface User {
   id: string;
@@ -27,26 +46,25 @@ interface EditSnippetPageProps {
   detailedArticle?: any;
 }
 
-const languages = [
-  'JavaScript', 'Python', 'C++', 'Java', 'CSS', 'HTML', 'TypeScript', 
-  'PHP', 'SQL', 'Go', 'Rust', 'C#', 'Ruby', 'Swift', 'Kotlin'
-];
-
-export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: EditSnippetPageProps) {
+export function EditSnippetPage({
+  snippetId,
+  detailedArticle,
+  languageChoices,
+}: EditSnippetPageProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [form, setForm] = useState({
-    title: '',
-    language: '',
-    description: '',
-    code: '',
-    tags: ''
+    title: "",
+    language: "",
+    description: "",
+    code: "",
+    tags: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Load snippet data from detailedArticle prop if provided, otherwise fetch
   useEffect(() => {
     let mounted = true;
@@ -56,11 +74,13 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
           const data = detailedArticle;
           if (!mounted) return;
           setForm({
-            title: data.title || data.name || '',
-            language: data.language || data.lang || '',
-            description: data.description || data.body || '',
-            code: data.code || data.highlightedCode || '',
-            tags: Array.isArray(data.tags) ? data.tags.join(', ') : (data.tags || ''),
+            title: data.title || data.name || "",
+            language: data.language || data.lang || "",
+            description: data.description || data.body || "",
+            code: data.code || data.highlightedCode || "",
+            tags: Array.isArray(data.tags)
+              ? data.tags.join(", ")
+              : data.tags || "",
           });
           // store author id for permission checks
           setCoderUsername(data?.coder?.username || null);
@@ -68,14 +88,20 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
           return;
         }
       } catch (error: any) {
-        console.error('Failed to load snippet:', error);
-        toast.error(error?.response?.data?.message || error.message || 'Failed to load snippet');
+        console.error("Failed to load snippet:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            error.message ||
+            "Failed to load snippet"
+        );
       } finally {
         if (mounted) setIsLoading(false);
       }
     };
     init();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [snippetId, detailedArticle]);
 
   const [coderUsername, setCoderUsername] = useState<string | null>(null);
@@ -84,21 +110,24 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
   const currentUserId = (session as any)?.user?.username || null;
 
   // Check if user can edit this snippet
-  const canEdit = currentUserId && coderUsername && String(currentUserId) === String(coderUsername);
+  const canEdit =
+    currentUserId &&
+    coderUsername &&
+    String(currentUserId) === String(coderUsername);
 
   // Require authentication
-  if (status !== 'authenticated') {
+  if (status !== "authenticated") {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-md mx-auto text-center">
           <span className="text-4xl mb-4 block">🔒</span>
-          <h1 className="text-xl sm:text-2xl font-mono mb-4">Authentication Required</h1>
+          <h1 className="text-xl sm:text-2xl font-mono mb-4">
+            Authentication Required
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
             You need to be logged in to edit snippets.
           </p>
-          <Button onClick={() => router.push('/')}>
-            ← Back to Home
-          </Button>
+          <Button onClick={() => router.push("/")}>← Back to Home</Button>
         </div>
       </div>
     );
@@ -127,21 +156,23 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
         <div className="max-w-md mx-auto text-center">
           <span className="text-4xl mb-4 block">⏳</span>
           <h1 className="text-xl sm:text-2xl font-mono mb-4">Loading...</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Loading snippet data...</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Loading snippet data...
+          </p>
         </div>
       </div>
     );
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!form.title.trim() || !form.language || !form.code.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -156,19 +187,32 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
         tags: parsedTags,
       };
 
-      const resp = await axiosClient.patch(`snippets/${snippetId}/`, snippetData, {
-        headers: { Authorization: 'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || '') }
-      });
+      const resp = await axiosClient.patch(
+        `snippets/${snippetId}/`,
+        snippetData,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              ((session as any)?.accessToken ||
+                (session as any)?.access_token ||
+                ""),
+          },
+        }
+      );
 
       if (resp.data) {
-  toast.success('Snippet updated successfully!');
-  router.push(`/snippet-detail/${snippetId}`);
+        toast.success("Snippet updated successfully!");
+        router.push(`/snippet-detail/${snippetId}`);
       } else {
-        throw new Error('No response from server');
+        throw new Error("No response from server");
       }
     } catch (error: any) {
-      console.error('Update error:', error);
-      const msg = error?.response?.data?.message || error.message || 'Failed to update snippet';
+      console.error("Update error:", error);
+      const msg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to update snippet";
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
@@ -180,14 +224,24 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
 
     try {
       const resp = await axiosClient.delete(`snippets/${snippetId}/`, {
-        headers: { Authorization: 'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || '') }
+        headers: {
+          Authorization:
+            "Bearer " +
+            ((session as any)?.accessToken ||
+              (session as any)?.access_token ||
+              ""),
+        },
       });
-  toast.success('Snippet deleted successfully!');
-  setShowDeleteModal(false);
-  router.push('/snippets');
+      toast.success("Snippet deleted successfully!");
+      setShowDeleteModal(false);
+      router.push("/snippets");
     } catch (error: any) {
-      console.error('Delete error:', error);
-      toast.error(error?.response?.data?.message || error.message || 'Failed to delete snippet');
+      console.error("Delete error:", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error.message ||
+          "Failed to delete snippet"
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -198,18 +252,18 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
   };
 
   const parsedTags = form.tags
-    .split(',')
-    .map(tag => tag.trim())
-    .filter(tag => tag.length > 0);
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
 
   return (
     <>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleCancel}
             className="mr-4"
           >
@@ -250,7 +304,9 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
                       id="title"
                       placeholder="e.g., Binary Search Implementation"
                       value={form.title}
-                      onChange={(e) => handleInputChange('title', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
                       required
                       className="text-sm"
                     />
@@ -259,9 +315,15 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
                   {/* Language */}
                   <div className="space-y-2">
                     <Label htmlFor="language" className="text-sm">
-                      Programming Language <span className="text-destructive">*</span>
+                      Programming Language{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
-                    <Select value={form.language} onValueChange={(value) => handleInputChange('language', value)}>
+                    <Select
+                      value={form.language}
+                      onValueChange={(value) =>
+                        handleInputChange("language", value)
+                      }
+                    >
                       <SelectTrigger className="text-sm">
                         <SelectValue placeholder="Select a language" />
                       </SelectTrigger>
@@ -277,18 +339,26 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
 
                   {/* Tags */}
                   <div className="space-y-2">
-                    <Label htmlFor="tags" className="text-sm">Tags (optional)</Label>
+                    <Label htmlFor="tags" className="text-sm">
+                      Tags (optional)
+                    </Label>
                     <Input
                       id="tags"
                       placeholder="e.g., algorithm, search, recursion (comma-separated)"
                       value={form.tags}
-                      onChange={(e) => handleInputChange('tags', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("tags", e.target.value)
+                      }
                       className="text-sm"
                     />
                     {parsedTags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {parsedTags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             #{tag}
                           </Badge>
                         ))}
@@ -298,13 +368,17 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
 
                   {/* Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm">Description/Explanation</Label>
+                    <Label htmlFor="description" className="text-sm">
+                      Description/Explanation
+                    </Label>
                     <Textarea
                       id="description"
                       placeholder="Explain what your code does, how to use it, and any important notes..."
                       className="min-h-[120px] text-sm"
                       value={form.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("description", e.target.value)
+                      }
                     />
                   </div>
 
@@ -318,14 +392,20 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
                       placeholder="Paste your code here..."
                       className="min-h-[300px] font-mono text-sm"
                       value={form.code}
-                      onChange={(e) => handleInputChange('code', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("code", e.target.value)
+                      }
                       required
                     />
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <Button type="submit" disabled={isSubmitting} className="flex-1 text-sm">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 text-sm"
+                    >
                       {isSubmitting ? (
                         <>
                           <span className="mr-2">⏳</span>
@@ -338,7 +418,12 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
                         </>
                       )}
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleCancel} className="flex-1 text-sm">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="flex-1 text-sm"
+                    >
                       <span className="mr-2">❌</span>
                       Cancel
                     </Button>
@@ -393,6 +478,3 @@ export function EditSnippetPage({ snippetId, detailedArticle ,languageChoices}: 
     </>
   );
 }
-
-
-

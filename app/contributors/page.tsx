@@ -3,14 +3,14 @@ import { ContributorsPage } from "../components/ContributorsPage";
 import { axiosClient } from "../api-client";
 
 export default async function Page() {
-  let allContributors = await axiosClient({
+  let contributersResp = await axiosClient({
     method: "get",
     url: "top-contributors",
   });
-  allContributors = allContributors.data;
+  contributersResp = contributersResp.data;
   return (
     <>
-      <ContributorsPage allContributors={allContributors}/>
+      <ContributorsPage allContributors={contributersResp}/>
     </>
   );
 }

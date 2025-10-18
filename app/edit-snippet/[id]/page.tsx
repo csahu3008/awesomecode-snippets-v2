@@ -4,22 +4,22 @@ import { axiosClient } from "@/app/api-client";
 
 export default async function Page({params}) {
   const { id } = await params;
-   const response = await axiosClient({
+   const detaileResp = await axiosClient({
       method: "get",
       url: `snippets/${id}/`,
     });
-    const detailedArticle = response.data;
+    const detailArticle = detaileResp.data;
+
     const resp = await axiosClient({
       method: "get",
       url: "language-options",
     });
     const languageChoices = resp.data;
-    console.log({detailedArticle})
   return (
     <>
       <EditSnippetPage
         snippetId={id}
-        detailedArticle={detailedArticle}
+        detailedArticle={detailArticle}
         languageChoices={languageChoices}
       />
     </>
