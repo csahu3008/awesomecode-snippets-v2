@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Link from 'next/link';
 import { useState } from 'react';
+import type { Contributor } from '../types/api';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -20,20 +21,21 @@ type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-de
 
 dayjs.extend(relativeTime);
 
-export function ContributorsPage({ allContributors }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setcurrentPage] = useState(1);
+export function ContributorsPage({ allContributors = [] }: { allContributors?: Contributor[] }) {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setcurrentPage] = useState<number>(1);
 
   const itemsPerPage = 6;
 
-  // Filter contributors based on search
-  const filteredContributors = allContributors.filter(
-    contributor =>
-      contributor.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contributor.top_languages.some(lang =>
-        lang.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-  );
+  // Filter contributors based on search (guard fields)
+  const filteredContributors = (allContributors || []).filter((contributor: Contributor) => {
+    const username = (contributor.username || '').toLowerCase();
+    const langs = Array.isArray(contributor.top_languages) ? contributor.top_languages : [];
+    return (
+      username.includes(searchQuery.toLowerCase()) ||
+      langs.some(lang => (lang || '').toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
 
   const totalPages = Math.ceil(filteredContributors.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -81,7 +83,7 @@ export function ContributorsPage({ allContributors }) {
 
       {/* Contributors Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {paginatedContributors.map((contributor, index) => {
+        {paginatedContributors.map((contributor: Contributor, index: number) => {
           const globalIndex = startIndex + index;
           return (
             <Card key={contributor.id} className="hover:shadow-md transition-shadow">
@@ -96,7 +98,7 @@ export function ContributorsPage({ allContributors }) {
                         {contributor.username}
                       </CardTitle>
                       <CardDescription className="text-xs sm:text-sm">
-                        Member since {dayjs(contributor.date_joined).format('MMM YYYY')}
+                        Member since {contributor.date_joined ? dayjs(contributor.date_joined).format('MMM YYYY') : 'Unknown'}
                       </CardDescription>
                     </div>
                   </div>
@@ -111,7 +113,7 @@ export function ContributorsPage({ allContributors }) {
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-center mb-1">
                       <span className="mr-1 text-sm">📄</span>
-                      <span className="font-medium text-sm">{contributor.total_snippets}</span>
+                    <span className="font-medium text-sm">{contributor.total_snippets ?? 0}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">Snippets</p>
                   </div>
@@ -127,14 +129,14 @@ export function ContributorsPage({ allContributors }) {
                 </div>
 
                 {/* Top Languages */}
-                {contributor.top_languages.length > 0 && (
+                {(Array.isArray(contributor.top_languages) ? contributor.top_languages : []).length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm font-medium mb-2 flex items-center">
                       <span className="mr-1">🧠</span>
                       Top Languages:
                     </p>
                     <div className="flex flex-wrap gap-1">
-                      {contributor.top_languages.map(language => (
+                      {(Array.isArray(contributor.top_languages) ? contributor.top_languages : []).map((language: string) => (
                         <Badge key={language} variant="outline" className="text-xs">
                           {language}
                         </Badge>
@@ -147,7 +149,7 @@ export function ContributorsPage({ allContributors }) {
                 <div className="flex items-center text-xs text-muted-foreground">
                   <span className="mr-1">📈</span>
                   <span className="truncate">
-                    Last active {dayjs(contributor.last_login).fromNow()}
+                    Last active {contributor.last_login ? dayjs(contributor.last_login).fromNow() : 'Unknown'}
                   </span>
                 </div>
               </CardContent>

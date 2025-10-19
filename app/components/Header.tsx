@@ -1,13 +1,12 @@
 'use client';
 import { signOut, useSession } from 'next-auth/react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useGlobalContext } from '../context';
-import { AuthModal } from './AuthModal';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-
 type Page =
   | 'overview'
   | 'snippets'
@@ -68,13 +67,12 @@ export function Header() {
         <div className="w-full max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl">📄</span>
             <span className="font-mono tracking-tight hidden sm:inline text-lg">
-              AwesomeCodeSnippets
+             <img src={'logo.png'} alt="" width="876" height="128" className='h-10 w-auto' />
             </span>
-            <span className="font-mono tracking-tight sm:hidden text-lg">ACS</span>
+            <span className="font-mono tracking-tight sm:hidden text-lg"><img src={'logo.png'} alt="" width="876" height="128" className='h-8 w-auto' />
+</span>
           </Link>
-
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-6">
             {navItems.map(item => (

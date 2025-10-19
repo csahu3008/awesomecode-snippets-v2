@@ -10,10 +10,17 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getColorByIndex } from '../utils';
+import type { LanguageSummary, Contributor, Snippet } from '../types/api';
 // Enable the plugin
 dayjs.extend(relativeTime);
-function OverviewPage({ topLanguages, topContributors, latestSnippets }) {
-  const { handleNavigate } = useGlobalContext();
+
+type OverviewPageProps = {
+  topLanguages?: LanguageSummary[];
+  topContributors?: Contributor[];
+  latestSnippets?: Snippet[];
+};
+
+function OverviewPage({ topLanguages = [], topContributors = [], latestSnippets = [] }: OverviewPageProps) {
   const { status } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,10 +32,7 @@ function OverviewPage({ topLanguages, topContributors, latestSnippets }) {
       {/* Hero Section */}
       <section className="text-center mb-12 lg:mb-20">
         <div className="max-w-4xl mx-auto">
-          <div className="text-4xl lg:text-6xl mb-6">📄</div>
-          <h1 className="text-2xl sm:text-3xl lg:text-5xl font-mono mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            AwesomeCodeSnippets
-          </h1>
+             <img src={'logo.png'} alt="" width="876" height="128" className='w-[90%] h-auto md:h-[80px] md:w-auto lg:h-[120px] object-center block mx-auto' />
           <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-8 leading-relaxed max-w-2xl mx-auto">
             एक ऐसी जगह जहाँ आप अपने पसंदीदा कोड अंश को प्रकाशित कर सकते हैं और दूसरे लोग आपके कोड से
             कुछ नया सीख सकते हैं।
@@ -69,7 +73,7 @@ function OverviewPage({ topLanguages, topContributors, latestSnippets }) {
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
-            {latestSnippets.map(snippet => (
+            {latestSnippets.map((snippet: Snippet) => (
               <Link className="block" key={snippet.id} href={`snippet-detail/${snippet.id}`}>
                 <div className="flex flex-col space-y-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                   <div className="flex items-start justify-between gap-2">
@@ -80,11 +84,11 @@ function OverviewPage({ topLanguages, topContributors, latestSnippets }) {
                   </div>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <span className="mr-1">👤</span>
-                    <span className="truncate flex-1">{snippet.coder.username}</span>
+                    <span className="truncate flex-1">{snippet.coder?.username || 'Unknown'}</span>
                     <span className="mx-2 flex-shrink-0">•</span>
                     <span className="flex items-center flex-shrink-0">
                       <span className="mr-1">⏰</span>
-                      updated {dayjs(snippet.updated_date).fromNow()}
+                      updated {dayjs(snippet.updated_date || snippet.publication_date).fromNow()}
                     </span>
                   </div>
                 </div>

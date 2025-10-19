@@ -57,8 +57,13 @@ interface LanguageChoice {
   value: string;
 }
 
+interface StyleChoice {
+  key: string;
+  value?: string;
+}
+
 interface AddSnippetPagePropsInternal {
-  languageChoices: { languages: LanguageChoice[] };
+  languageChoices: { languages: LanguageChoice[]; style_choices?: StyleChoice[] };
 }
 
 export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal) {
@@ -72,7 +77,7 @@ export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal)
     description: '',
     highlightedCode: ``,
     tags: '',
-    style: languageChoices.style_choices[0].key || 'abap',
+    style: (languageChoices?.style_choices && languageChoices.style_choices[0]?.key) || 'abap',
   });
 
   // Redirect to login if not authenticated

@@ -28,13 +28,9 @@ interface User {
   avatar?: string;
 }
 
-interface Comment {
-  id: string;
-  user: string;
-  text: string;
-  date: string;
-  avatar?: string;
-}
+import { Snippet, CommentApi } from '@/app/types/api';
+
+interface LocalComment extends CommentApi {}
 
 interface RelatedSnippet {
   id: string;
@@ -47,8 +43,9 @@ interface RelatedSnippet {
 
 interface SnippetDetailPageProps {
   snippetId: string;
-  article?: any; // API response for the snippet (provided by parent)
-  relatedArticles?: any[]; // list of related articles from parent
+  article?: Snippet | null; // API response for the snippet (provided by parent)
+  relatedArticles?: Snippet[]; // list of related articles from parent
+  allComments?: CommentApi[];
 }
 
 // Note: `article` and `relatedArticles` are provided by the parent route — this component only consumes them.
@@ -70,7 +67,7 @@ export function SnippetDetailPage({
   const user = (session as any)?.user ?? null;
   const sessionUsername: string | null =
     (session as any)?.user?.username || null;
-  const articleData = article ?? {};
+  const articleData: Snippet | null = article ?? null;
   // Check if current session owns this snippet
   const isOwner =
     status === "authenticated" &&
@@ -78,21 +75,31 @@ export function SnippetDetailPage({
       ? true
       : false;
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState<Comment[]>(
-    (allComments as Comment[]) ?? []
+  const [comments, setComments] = useState<LocalComment[]>(
+    (allComments as LocalComment[]) ?? []
   );
   const [isBookmarked, setIsBookmarked] = useState(articleData?.bookmarked);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(articleData.code ?? '');
+    const text = articleData?.code ?? '';
+    if (!text) {
+      CustomToast('error', 'No code to copy');
+      return;
+    }
+    navigator.clipboard.writeText(text);
     CustomToast('success','Code copied to clipboard!')
   };
 
   const handleDownloadCode = () => {
+    const codeText = articleData?.code ?? '';
+    if (!codeText) {
+      CustomToast('error', 'No code to download');
+      return;
+    }
     const element = document.createElement('a');
-    const file = new Blob([articleData.code ?? ''], { type: 'text/plain' });
+    const file = new Blob([codeText], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     const ext = (articleData?.language || 'txt').toLowerCase();
     element.download = `${(articleData?.title ?? 'snippet')
@@ -107,7 +114,7 @@ export function SnippetDetailPage({
     CustomToast('success','Code downloaded!')
   };
 
-   const handleBookmarkToggle =async () => {
+  const handleBookmarkToggle =async () => {
     
     try {
       const resp = await axiosClient.post(
@@ -135,12 +142,9 @@ export function SnippetDetailPage({
       // success
     } catch (error: any) {
       console.error("Error while Bookmark action:", error);
-      const msg =
-        error?.response?.data?.message ||
-        error.message ||
-        "Failed to delete snippet";
-      CustomToast('success',msg)
-    } 
+      const msg = error?.response?.data?.message || error.message || "Failed to toggle bookmark";
+      CustomToast('error', msg);
+    }
   };
 
 
@@ -172,12 +176,13 @@ export function SnippetDetailPage({
 
     if (!newComment.trim()) return;
 
-    const comment = {
-      snippet: snippetId,
+    const payload = {
+      snippet: Number(snippetId),
       detail: newComment.trim(),
+      parent: null,
     };
     try {
-      const resp = await axiosClient.post(`comments/`, comment, {
+      const resp = await axiosClient.post(`comments/`, payload, {
         headers: {
           Authorization:
             "Bearer " +
@@ -186,10 +191,12 @@ export function SnippetDetailPage({
               ""),
         },
       });
-      if (resp.status === 201) {
-        setComments([{ ...comment, user: session.user }, ...comments]);
+      if (resp.status === 201 || resp.status === 200) {
+        // server returns the created comment
+        const created = resp.data as LocalComment;
+        setComments([created, ...comments]);
         setNewComment("");
-        CustomToast('success','Comment added successfully!')
+        CustomToast('success','Comment added successfully!');
       } else {
         throw new Error("something went wrong");
       }
@@ -199,7 +206,7 @@ export function SnippetDetailPage({
         error.message ||
         "Failed to add comments";
       console.error(msg, "Error");
-      CustomToast('error',"Can't add new comments kindly try it later")
+      CustomToast('error', "Can't add new comments, please try again later")
     }
   };
 
@@ -232,7 +239,7 @@ export function SnippetDetailPage({
     }
   };
   const relatedArticlesList =
-    relatedArticles?.filter((item) => item.id !== articleData.id) || [];
+    relatedArticles?.filter((item) => item.id !== (articleData?.id ?? -1)) || [];
   return (
     <>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -254,11 +261,11 @@ export function SnippetDetailPage({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-xl sm:text-2xl break-words">
-                      {article.title}
+                      {articleData?.title ?? 'Untitled'}
                     </CardTitle>
                   </div>
                   <Badge variant="secondary" className="text-sm px-3 py-1 flex-shrink-0">
-                    {article.language}
+                    {articleData?.language ?? 'Unknown'}
                   </Badge>
                 </div>
 
@@ -276,9 +283,9 @@ export function SnippetDetailPage({
                   <div className="flex items-center">
                     <span className="mr-1">👤</span>
                     <span className="truncate">
-                      {articleData?.coder?.username ??
-                        articleData?.coder ??
-                        articleData?.author ??
+                      {(articleData?.coder?.username as string) ||
+                        (typeof articleData?.coder === 'string' ? articleData?.coder : undefined) ||
+                        (articleData?.author as string) ||
                         'Unknown'}
                     </span>
                   </div>

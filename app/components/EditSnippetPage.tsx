@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { Textarea } from './ui/textarea';
 import { useSession } from 'next-auth/react';
 import { axiosClient } from '../api-client';
 import { CustomToast } from './Toaster';
+import type { LanguageOption } from '../types/api';
 
 type Page =
   | 'overview'
@@ -33,6 +34,7 @@ interface User {
 interface EditSnippetPageProps {
   snippetId: string;
   detailedArticle?: any;
+  languageChoices?: { languages: LanguageOption[] };
 }
 
 export function EditSnippetPage({
@@ -275,7 +277,7 @@ export function EditSnippetPage({
                         <SelectValue placeholder="Select a language" />
                       </SelectTrigger>
                       <SelectContent>
-                        {languageChoices.languages.map(lang => (
+                        {(languageChoices?.languages || []).map(lang => (
                           <SelectItem key={lang.key} value={lang.key}>
                             {lang.value}
                           </SelectItem>

@@ -22,11 +22,20 @@ type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-de
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
-export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
+import type { Snippet, PagedResponse, LanguageOption } from '../types/api';
+
+type SnippetsPageProps = {
+  snippets: Snippet[];
+  paginationConfig: { totalSnippets: number; currentPage?: number; itemsPerPage: number };
+  languageChoices: { languages: LanguageOption[] };
+};
+
+export function SnippetsPage({ snippets, paginationConfig, languageChoices }: SnippetsPageProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
-  const languages = [{ key: 'all', value: 'All Languages' }, ...languageChoices.languages];
+  const safeLanguageChoices = languageChoices && languageChoices.languages ? languageChoices : { languages: [] };
+  const languages = [{ key: 'all', value: 'All Languages' }, ...safeLanguageChoices.languages];
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query')?.toString() || '');
   const [selectedLanguage, setSelectedLanguage] = useState(
     searchParams.get('language')?.toString(),
@@ -105,7 +114,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
 
       {/* Snippets Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {snippets.map(snippet => (
+  {snippets.map((snippet: Snippet) => (
           <Link key={snippet.id} href={`/snippet-detail/${snippet.id}`}>
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader>
@@ -126,8 +135,8 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {Array.isArray(snippet.tags) &&
-                    snippet.tags?.map(tag => (
+                    {Array.isArray(snippet.tags) &&
+                    snippet.tags?.map((tag: string) => (
                       <Badge key={tag} variant="outline" className="text-xs">
                         #{tag}
                       </Badge>
@@ -137,7 +146,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
                   <div className="flex items-center space-x-3 min-w-0">
                     <span className="flex items-center">
                       <span className="mr-1">👤</span>
-                      <span className="truncate">{snippet.coder.username}</span>
+                      <span className="truncate">{snippet.coder?.username || 'Unknown'}</span>
                     </span>
                     <div className="flex items-center whitespace-nowrap">
                       <span className="mr-1">📅</span>
@@ -145,7 +154,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 flex-shrink-0">
-                    {snippet.starts && (
+                    {snippet.stars && (
                       <div className="flex items-center">
                         <span className="mr-1">⭐</span>
                         {snippet.stars}

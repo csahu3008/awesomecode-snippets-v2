@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { getColorByIndex } from '../utils';
+import type { LanguageSummary } from '../types/api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -61,14 +62,17 @@ const topLanguages = {
   css: 'CSS is the stylesheet language used to design and visually style web pages and user interfaces.',
 };
 
-export function LanguagesPage({ languageStats }) {
+export function LanguagesPage({ languageStats = [] }: { languageStats?: LanguageSummary[] }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter languages based on search
-  const filteredLanguages = languageStats.filter(
-    language =>
-      language.language.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      topLanguages[language.language]?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+  const filteredLanguages = (languageStats || []).filter((language: LanguageSummary) =>
+    (language.language || '')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()) ||
+    (topLanguages[language.language as keyof typeof topLanguages] || '')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -106,7 +110,7 @@ export function LanguagesPage({ languageStats }) {
 
       {/* Languages Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {filteredLanguages.map((language, index) => (
+        {filteredLanguages.map((language: LanguageSummary, index: number) => (
           <Card key={language.language} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
@@ -121,13 +125,13 @@ export function LanguagesPage({ languageStats }) {
                       {false && (
                         <span className="text-xs sm:text-sm font-normal text-green-600 flex items-center flex-shrink-0">
                           <span className="mr-1">📈</span>
-                          {language.trending}
+                          {(language as any).trending}
                         </span>
                       )}
                     </CardTitle>
-                    <CardDescription className="text-sm">
-                      {topLanguages[language?.language]}
-                    </CardDescription>
+                      <CardDescription className="text-sm">
+                        {topLanguages[language?.language as keyof typeof topLanguages] || ''}
+                      </CardDescription>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -176,7 +180,7 @@ export function LanguagesPage({ languageStats }) {
                 </h4>
                 <div className="space-y-2">
                   {Array.isArray(language?.recent_snippets) &&
-                    language.recent_snippets.map((snippet, i) => (
+                    (language.recent_snippets || []).map((snippet: any, i: number) => (
                       <Link key={snippet.id} href={`/snippet-detail/${snippet.id}`}>
                         <div className="text-sm text-muted-foreground flex items-center">
                           <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mr-2 flex-shrink-0"></div>
@@ -194,7 +198,7 @@ export function LanguagesPage({ languageStats }) {
                   Top Contributors
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {language.top_contributors.map((contributor, i) => (
+                  {(((language as any).top_contributors) || []).map((contributor: any, i: number) => (
                     <span
                       key={i}
                       className="text-xs bg-muted px-2 py-1 rounded flex items-center max-w-full"
