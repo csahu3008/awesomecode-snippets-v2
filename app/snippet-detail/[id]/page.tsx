@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   }
 
   try {
-    const commentsResp = await axiosClient({ method: 'get', url: `comments?snippet_id=${id}` });
+    const commentsResp = await axiosClient({ method: 'get', url: `comments?snippet=${id}` });
     comments = commentsResp.data?.results ?? [];
   } catch (error: any) {
     console.error('Failed to load comments', error);
