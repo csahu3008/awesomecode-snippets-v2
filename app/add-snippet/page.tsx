@@ -2,6 +2,7 @@ import React from 'react';
 import { AddSnippetPage } from '../components/AddSnippetPage';
 import { axiosClient } from '../api-client';
 import type { LanguageOption } from '../types/api';
+export const dynamic='force-dynamic'
 
 export default async function Page() {
   try {

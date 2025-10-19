@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getAuthHeadersFromSession } from '@/app/auth-helper';
 import { Snippet, CommentApi } from '@/app/types/api';
+export const dynamic='force-dynamic'
 
 export default async function Page({ params }: { params: { id: string } }) {
   const { id } =await params;

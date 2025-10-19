@@ -7,6 +7,7 @@ import { Toaster } from './components/ui/sonner';
 import { GlobalContextProvider } from './context';
 import './globals.css';
 import { AuthModal } from './components/AuthModal';
+import { Suspense } from 'react';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -36,10 +37,14 @@ export default function RootLayout({
         <GlobalContextProvider>
           <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
             <ThemeWrapper>
+              <Suspense fallback={<h1>Loading ...</h1>}>
               <Header />
+              </Suspense>
               <main className="w-full">{children}</main>
               <Toaster />
+              <Suspense fallback={<h1>Loading ...</h1>}>
               <AuthModal />
+              </Suspense>
             </ThemeWrapper>
           </body>
         </GlobalContextProvider>

@@ -2,6 +2,7 @@ import React from 'react';
 import { EditSnippetPage } from '@/app/components/EditSnippetPage';
 import { axiosClient } from '@/app/api-client';
 import type { Snippet, LanguageOption } from '@/app/types/api';
+export const dynamic='force-dynamic'
 
 type Props = {
   params: { id: string };

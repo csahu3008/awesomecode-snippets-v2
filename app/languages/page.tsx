@@ -1,6 +1,7 @@
 import { axiosClient } from '../api-client';
 import { LanguagesPage } from '../components/LanguagesPage';
 import type { LanguageSummary } from '../types/api';
+export const dynamic='force-dynamic'
 
 export default async function Page() {
   try {

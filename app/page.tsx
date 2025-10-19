@@ -1,7 +1,8 @@
+import { Suspense } from 'react';
 import { axiosClient } from './api-client';
 import OverviewPage from './components/OverviewPage';
 import { PagedResponse, Snippet, Contributor, LanguageSummary } from './types/api';
-
+export const dynamic='force-dynamic'
 async function page() {
   let latestArticles: Snippet[] = [];
   let topContributors: Contributor[] = [];
@@ -31,11 +32,13 @@ async function page() {
 
   return (
     <>
+    <Suspense fallback={<h1>Loading...</h1>}>
       <OverviewPage
         topLanguages={topLanguages}
         topContributors={topContributors}
         latestSnippets={latestArticles}
-      />
+        />
+        </Suspense>
     </>
   );
 }

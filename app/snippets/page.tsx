@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { axiosClient } from '../api-client';
 import { SnippetsPage } from '../components/SnippetsPage';
 import type { LanguageOption, Snippet } from '../types/api';
+export const dynamic='force-dynamic'
 
 type Props = {
   searchParams?: { [key: string]: string | string[] | undefined };
@@ -8,9 +10,9 @@ type Props = {
 
 export default async function Page({ searchParams = {} }: Props) {
   try {
-    let pageParam = (await searchParams as any).page;
-    let language = (await searchParams as any).language;
-    let query = (await searchParams as any).query;
+    let pageParam = ((await searchParams) as any).page;
+    let language = ((await searchParams) as any).language;
+    let query = ((await searchParams) as any).query;
     const page = pageParam ? parseInt(String(pageParam)) : 1;
 
     let queryUrl = '';
@@ -48,11 +50,13 @@ export default async function Page({ searchParams = {} }: Props) {
 
     return (
       <>
-        <SnippetsPage
-          languageChoices={languageChoices}
-          paginationConfig={paginationConfig}
-          snippets={latestSnippets}
-        />
+        <Suspense fallback={<h1>Loading ....</h1>}>
+          <SnippetsPage
+            languageChoices={languageChoices}
+            paginationConfig={paginationConfig}
+            snippets={latestSnippets}
+          />
+        </Suspense>
       </>
     );
   } catch (error) {
@@ -60,11 +64,13 @@ export default async function Page({ searchParams = {} }: Props) {
     // Provide safe fallbacks so the page still renders
     return (
       <>
-        <SnippetsPage
-          languageChoices={{ languages: [], style_choices: [] }}
-          paginationConfig={{ totalSnippets: 0, currentPage: 1, itemsPerPage: 4 }}
-          snippets={[]}
-        />
+        <Suspense fallback={<h1>Loading ....</h1>}>
+          <SnippetsPage
+            languageChoices={{ languages: [], style_choices: [] }}
+            paginationConfig={{ totalSnippets: 0, currentPage: 1, itemsPerPage: 4 }}
+            snippets={[]}
+          />
+        </Suspense>
       </>
     );
   }

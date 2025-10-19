@@ -2,6 +2,7 @@ import React from 'react';
 import { ContributorsPage } from '../components/ContributorsPage';
 import { axiosClient } from '../api-client';
 import type { Contributor } from '../types/api';
+export const dynamic='force-dynamic'
 
 export default async function Page() {
   try {
