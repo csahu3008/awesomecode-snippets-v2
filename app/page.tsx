@@ -20,11 +20,13 @@ async function page() {
   });
   topLanguages = topLanguages.data?.slice(0, 5);
   return (
+    <>
     <OverviewPage
       topLanguages={topLanguages}
       topContributors={topContributors}
       latestSnippets={latestArticles}
-    />
+      />
+      </>
   );
 }
 export default page;

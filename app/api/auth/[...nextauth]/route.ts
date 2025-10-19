@@ -22,7 +22,7 @@ const getCurrentEpochTime = () => {
 // const SIGN_IN_PROVIDERS = Object.keys(SIGN_IN_HANDLERS);
 
 export const authOptions = {
-  pages: { signIn: '/sign-in' },
+  pages: { signIn: '/?show_login_modal=true' },
   secret: process.env.AUTH_SECRET,
   session: {
     strategy: 'jwt',
