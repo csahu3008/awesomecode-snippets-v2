@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import { useSession } from 'next-auth/react';
 import { axiosClient } from '../api-client';
+import { CustomToast } from './Toaster';
 
 type Page =
   | 'overview'
@@ -75,7 +76,7 @@ export function EditSnippetPage({
         }
       } catch (error: any) {
         console.error('Failed to load snippet:', error);
-        toast.error(error?.response?.data?.message || error.message || 'Failed to load snippet');
+        CustomToast('error',error?.response?.data?.message || error.message || 'Failed to load snippet');
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -147,7 +148,7 @@ export function EditSnippetPage({
     e.preventDefault();
 
     if (!form.title.trim() || !form.language || !form.code.trim()) {
-      toast.error('Please fill in all required fields');
+      CustomToast('error','Please fill in all required fields')
       return;
     }
 
@@ -170,7 +171,7 @@ export function EditSnippetPage({
       });
 
       if (resp.data) {
-        toast.success('Snippet updated successfully!');
+        CustomToast('success','Snippet updated successfully')
         router.push(`/snippet-detail/${snippetId}`);
       } else {
         throw new Error('No response from server');
@@ -178,7 +179,7 @@ export function EditSnippetPage({
     } catch (error: any) {
       console.error('Update error:', error);
       const msg = error?.response?.data?.message || error.message || 'Failed to update snippet';
-      toast.error(msg);
+      CustomToast('error',msg)
     } finally {
       setIsSubmitting(false);
     }
@@ -194,12 +195,12 @@ export function EditSnippetPage({
             'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || ''),
         },
       });
-      toast.success('Snippet deleted successfully!');
+      CustomToast('success','Snippet deleted successfully!')
       setShowDeleteModal(false);
       router.push('/snippets');
     } catch (error: any) {
       console.error('Delete error:', error);
-      toast.error(error?.response?.data?.message || error.message || 'Failed to delete snippet');
+      CustomToast('success',error?.response?.data?.message || error.message || 'Failed to delete snippet')
     } finally {
       setIsDeleting(false);
     }

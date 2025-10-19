@@ -10,6 +10,7 @@ import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { CustomToast } from './Toaster';
 interface User {
   id: string;
   name: string;
@@ -52,7 +53,7 @@ export function AuthModal() {
       setIsLoading(false);
       return;
     } else {
-      toast.success('Successfully logged in!');
+      CustomToast('success','Successfully logged in!')
       setLoginForm({ username: '', password: '' });
       onClose();
     }
@@ -82,7 +83,7 @@ export function AuthModal() {
       return;
     }
 
-    toast.success('Account created successfully!');
+    CustomToast('success','Account created successfully!')
     setSignupForm({
       username: '',
       email: '',
@@ -96,7 +97,7 @@ export function AuthModal() {
   };
 
   const handleOAuthLogin = (provider: string) => {
-    toast.info(`${provider} login will be available soon!`);
+    CustomToast('info',`${provider} login will be available soon!`)
   };
   const onClose = (showModal = false) => {
     const _searchParams = new URLSearchParams(searchParams.toString());
@@ -111,7 +112,7 @@ export function AuthModal() {
   };
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-2xl">📄</span>
@@ -122,10 +123,10 @@ export function AuthModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs defaultValue="login" className="w-full sticky top-0">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger className='dark:data-[state=active]:bg-white dark:data-[state=active]:text-black' value="login">Login</TabsTrigger>
+            <TabsTrigger className='dark:data-[state=active]:bg-white dark:data-[state=active]:text-black' value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login" className="space-y-4 mt-6">

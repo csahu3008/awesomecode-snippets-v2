@@ -55,6 +55,7 @@ interface SnippetDetailPageProps {
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useSession } from 'next-auth/react';
 import { axiosClient } from '../api-client';
+import { CustomToast } from './Toaster';
 
 // Enable the plugin => provides fromNow() functionality
 dayjs.extend(relativeTime);
@@ -86,7 +87,7 @@ export function SnippetDetailPage({
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(articleData.code ?? '');
-    toast.success('Code copied to clipboard!');
+    CustomToast('success','Code copied to clipboard!')
   };
 
   const handleDownloadCode = () => {
@@ -103,7 +104,7 @@ export function SnippetDetailPage({
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    toast.success('Code downloaded!');
+    CustomToast('success','Code downloaded!')
   };
 
    const handleBookmarkToggle =async () => {
@@ -125,11 +126,11 @@ export function SnippetDetailPage({
       if (resp.data.status == "bookmark added") {
         // bookmark added
         setIsBookmarked(true);
-        toast.success("Added into your bookmarks !");
+        CustomToast('success','Added into your bookmarks !')
       } else {
         // bookmark removed
         setIsBookmarked(false);
-        toast.success("Removed from your bookmarks !");
+        CustomToast('success','Removed from your bookmarks !')
       }
       // success
     } catch (error: any) {
@@ -138,7 +139,7 @@ export function SnippetDetailPage({
         error?.response?.data?.message ||
         error.message ||
         "Failed to delete snippet";
-      toast.error(msg);
+      CustomToast('success',msg)
     } 
   };
 
@@ -165,7 +166,7 @@ export function SnippetDetailPage({
     e.preventDefault();
 
     if (status !== "authenticated") {
-      toast.error("Please login to comment");
+      CustomToast('error','Please login to comment!')
       return;
     }
 
@@ -188,7 +189,7 @@ export function SnippetDetailPage({
       if (resp.status === 201) {
         setComments([{ ...comment, user: session.user }, ...comments]);
         setNewComment("");
-        toast.success("Comment added successfully!");
+        CustomToast('success','Comment added successfully!')
       } else {
         throw new Error("something went wrong");
       }
@@ -198,7 +199,7 @@ export function SnippetDetailPage({
         error.message ||
         "Failed to add comments";
       console.error(msg, "Error");
-      toast.error("Can't add new comments kindly try it later");
+      CustomToast('error',"Can't add new comments kindly try it later")
     }
   };
 
@@ -216,7 +217,7 @@ export function SnippetDetailPage({
       });
 
       // success
-      toast.success("Snippet deleted successfully!");
+      CustomToast('success','Snippet deleted successfully!')
       setShowDeleteModal(false);
       router.push("/snippets");
     } catch (error: any) {
@@ -225,7 +226,7 @@ export function SnippetDetailPage({
         error?.response?.data?.message ||
         error.message ||
         "Failed to delete snippet";
-      toast.error(msg);
+      CustomToast('error',msg)
     } finally {
       setIsDeleting(false);
     }

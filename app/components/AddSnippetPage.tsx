@@ -11,6 +11,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
+import { CustomToast } from './Toaster';
 
 type Page =
   | 'overview'
@@ -98,7 +99,7 @@ export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal)
     e.preventDefault();
 
     if (!form.title.trim() || !form.language || !form.highlightedCode.trim()) {
-      toast.error('Please fill in all required fields');
+      CustomToast('error','Please fill in all required fields')
       return;
     }
 
@@ -127,7 +128,7 @@ export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal)
       );
 
       if (response.data?.id) {
-        toast.success('Snippet created successfully!');
+        CustomToast('success','Snippet created successfully!')
         router.push(`/snippet-detail/${response.data.id}`);
       } else {
         throw new Error('No snippet ID returned from server');
@@ -135,7 +136,7 @@ export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal)
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to create snippet';
-      toast.error(errorMessage);
+      CustomToast('error',errorMessage)
       console.error('Snippet creation error:', error);
     } finally {
       setIsSubmitting(false);

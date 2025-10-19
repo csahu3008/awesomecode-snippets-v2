@@ -73,7 +73,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }) {
             Code Snippets
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Browse {snippets.length} amazing code snippets from our community
+            Browse {totalSnippets} amazing code snippets from our community
           </p>
         </div>
       </div>
