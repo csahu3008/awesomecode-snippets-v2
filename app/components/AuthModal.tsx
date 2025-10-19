@@ -1,20 +1,15 @@
-"use client";
-import { signIn, signOut } from "next-auth/react";
-import { useState } from "react";
-import { toast } from "sonner";
-import handleAuthError from "../utils";
-import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Separator } from "./ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+'use client';
+import { signIn, signOut } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import handleAuthError from '../utils';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Separator } from './ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 interface User {
   id: string;
   name: string;
@@ -22,22 +17,21 @@ interface User {
   avatar?: string;
 }
 
-interface AuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isOpen = searchParams?.get('show_login_modal') === 'true' || false;
   const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
-    username: "",
-    password: "",
+    username: '',
+    password: '',
   });
   const [signupForm, setSignupForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
@@ -46,7 +40,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     e.preventDefault();
     setIsLoading(true);
     setLoginError(null);
-    const response = await signIn("login", {
+    const response = await signIn('login', {
       username: loginForm.username,
       password: loginForm.password,
       redirect: false,
@@ -57,23 +51,24 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setLoginError(msg);
       setIsLoading(false);
       return;
-    }else{
-      toast.success("Successfully logged in!");
-      setLoginForm({ username: "", password: "" });
+    } else {
+      toast.success('Successfully logged in!');
+      setLoginForm({ username: '', password: '' });
       onClose();
     }
     setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
+    setIsLoading(true);
     setSignupError(null);
     e.preventDefault();
 
     if (signupForm.password !== signupForm.confirmPassword) {
-      setSignupError("The passwords you entered don’t match.");
+      setSignupError('The passwords you entered don’t match.');
       return;
     }
-    const response = await signIn("signup", {
+    const response = await signIn('signup', {
       username: signupForm.username,
       password: signupForm.password,
       password2: signupForm.confirmPassword,
@@ -87,20 +82,33 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       return;
     }
 
-    toast.success("Account created successfully!");
+    toast.success('Account created successfully!');
     setSignupForm({
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     });
     setIsLoading(false);
+    setTimeout(() => {
+      onClose();
+    }, 1000);
   };
 
   const handleOAuthLogin = (provider: string) => {
     toast.info(`${provider} login will be available soon!`);
   };
-
+  const onClose = (showModal = false) => {
+    const _searchParams = new URLSearchParams(searchParams.toString());
+    if (showModal) {
+      // show login popup
+      _searchParams.set('show_login_modal', 'true');
+    } else {
+      // donot show login popup
+      _searchParams.delete('show_login_modal');
+    }
+    router.replace(`${pathname}${_searchParams ? `?${_searchParams.toString()}` : ''}`);
+  };
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -129,9 +137,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="text"
                   placeholder="Enter your username"
                   value={loginForm.username}
-                  onChange={(e) =>
-                    setLoginForm({ ...loginForm, username: e.target.value })
-                  }
+                  onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
                   required
                 />
               </div>
@@ -142,29 +148,17 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="password"
                   placeholder="Enter your password"
                   value={loginForm.password}
-                  onChange={(e) =>
-                    setLoginForm({ ...loginForm, password: e.target.value })
-                  }
+                  onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
             {loginError && (
-              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">
-                {loginError}
-              </p>
+              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">{loginError}</p>
             )}
-            <Button
-              type="button"
-              onClick={() => signOut({ redirect:false })}
-              className="w-full"
-              disabled={isLoading}
-            >
-              Logout
-            </Button>
 
             <div className="text-center">
               <button className="text-sm text-muted-foreground hover:text-primary">
@@ -182,9 +176,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="text"
                   placeholder="Enter Username"
                   value={signupForm.username}
-                  onChange={(e) =>
-                    setSignupForm({ ...signupForm, username: e.target.value })
-                  }
+                  onChange={e => setSignupForm({ ...signupForm, username: e.target.value })}
                   required
                 />
               </div>
@@ -195,9 +187,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="email"
                   placeholder="Enter your email"
                   value={signupForm.email}
-                  onChange={(e) =>
-                    setSignupForm({ ...signupForm, email: e.target.value })
-                  }
+                  onChange={e => setSignupForm({ ...signupForm, email: e.target.value })}
                   required
                 />
               </div>
@@ -208,9 +198,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="password"
                   placeholder="Create a password"
                   value={signupForm.password}
-                  onChange={(e) =>
-                    setSignupForm({ ...signupForm, password: e.target.value })
-                  }
+                  onChange={e => setSignupForm({ ...signupForm, password: e.target.value })}
                   required
                 />
               </div>
@@ -221,7 +209,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="password"
                   placeholder="Confirm your password"
                   value={signupForm.confirmPassword}
-                  onChange={(e) =>
+                  onChange={e =>
                     setSignupForm({
                       ...signupForm,
                       confirmPassword: e.target.value,
@@ -231,13 +219,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
+                {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
             {signupError && (
-              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">
-                {signupError}
-              </p>
+              <p className="text-sm text-destructive mt-2 whitespace-pre-wrap">{signupError}</p>
             )}
           </TabsContent>
         </Tabs>
@@ -251,19 +237,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           {/* OAuth Buttons */}
           <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleOAuthLogin("Google")}
-            >
+            <Button variant="outline" className="w-full" onClick={() => handleOAuthLogin('Google')}>
               <span className="mr-2">🔍</span>
               Continue with Google
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleOAuthLogin("GitHub")}
-            >
+            <Button variant="outline" className="w-full" onClick={() => handleOAuthLogin('GitHub')}>
               <span className="mr-2">🐙</span>
               Continue with GitHub
             </Button>

@@ -1,15 +1,11 @@
-"use client";
+'use client';
 
-import { useGlobalContext } from "../context";
+import { useGlobalContext } from '../context';
 
 export const ThemeWrapper = ({ children }) => {
   const { isDarkMode } = useGlobalContext();
   return (
-    <div
-      className={`min-h-screen bg-background text-foreground ${
-        isDarkMode ? "dark" : ""
-      }`}
-    >
+    <div className={`min-h-screen bg-background text-foreground ${isDarkMode ? 'dark' : ''}`}>
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
-"use client";
-import { createContext, useContext, useEffect, useState } from "react";
+'use client';
+import { createContext, useContext, useEffect, useState } from 'react';
 interface GlobalContextType {
   currentPage: Page;
   selectedSnippetId: string;
@@ -10,13 +10,13 @@ interface GlobalContextType {
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 type Page =
-  | "overview"
-  | "snippets"
-  | "contributors"
-  | "languages"
-  | "snippet-detail"
-  | "add-snippet"
-  | "edit-snippet";
+  | 'overview'
+  | 'snippets'
+  | 'contributors'
+  | 'languages'
+  | 'snippet-detail'
+  | 'add-snippet'
+  | 'edit-snippet';
 
 interface User {
   id: string;
@@ -29,8 +29,8 @@ interface GlobalContextProviderProps {
 }
 
 const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
-  const [currentPage, setcurrentPage] = useState<Page>("overview");
-  const [selectedSnippetId, setSelectedSnippetId] = useState<string>("");
+  const [currentPage, setcurrentPage] = useState<Page>('overview');
+  const [selectedSnippetId, setSelectedSnippetId] = useState<string>('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleNavigate = (page: Page, snippetId?: string) => {
@@ -42,11 +42,11 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", isDarkMode ? "light" : "dark");
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDarkMode ? 'light' : 'dark');
   };
   useEffect(() => {
-    setIsDarkMode(localStorage.getItem("theme") === "dark");
+    setIsDarkMode(localStorage.getItem('theme') === 'dark');
   }, []);
   return (
     <GlobalContext.Provider
@@ -66,9 +66,7 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
 const useGlobalContext = () => {
   const context = useContext(GlobalContext);
   if (!context) {
-    throw new Error(
-      "useGlobalContext must be used within a GlobalContextProvider"
-    );
+    throw new Error('useGlobalContext must be used within a GlobalContextProvider');
   }
   return context;
 };

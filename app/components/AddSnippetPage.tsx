@@ -1,37 +1,25 @@
-"use client";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { axiosClient } from "../api-client";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Textarea } from "./ui/textarea";
+'use client';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { axiosClient } from '../api-client';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Textarea } from './ui/textarea';
 
 type Page =
-  | "overview"
-  | "snippets"
-  | "contributors"
-  | "languages"
-  | "snippet-detail"
-  | "add-snippet"
-  | "edit-snippet";
+  | 'overview'
+  | 'snippets'
+  | 'contributors'
+  | 'languages'
+  | 'snippet-detail'
+  | 'add-snippet'
+  | 'edit-snippet';
 
 interface User {
   id: string;
@@ -46,21 +34,21 @@ interface AddSnippetPageProps {
 }
 
 const languages = [
-  "JavaScript",
-  "Python",
-  "C++",
-  "Java",
-  "CSS",
-  "HTML",
-  "TypeScript",
-  "PHP",
-  "SQL",
-  "Go",
-  "Rust",
-  "C#",
-  "Ruby",
-  "Swift",
-  "Kotlin",
+  'JavaScript',
+  'Python',
+  'C++',
+  'Java',
+  'CSS',
+  'HTML',
+  'TypeScript',
+  'PHP',
+  'SQL',
+  'Go',
+  'Rust',
+  'C#',
+  'Ruby',
+  'Swift',
+  'Kotlin',
 ];
 
 interface LanguageChoice {
@@ -72,49 +60,45 @@ interface AddSnippetPagePropsInternal {
   languageChoices: { languages: LanguageChoice[] };
 }
 
-export function AddSnippetPage({
-  languageChoices,
-}: AddSnippetPagePropsInternal) {
+export function AddSnippetPage({ languageChoices }: AddSnippetPagePropsInternal) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [langFilter, setLangFilter] = useState("");
+  const [langFilter, setLangFilter] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    title: "",
-    language: "",
-    description: "",
+    title: '',
+    language: '',
+    description: '',
     highlightedCode: ``,
-    tags: "",
-    style: languageChoices.style_choices[0].key || "abap",
+    tags: '',
+    style: languageChoices.style_choices[0].key || 'abap',
   });
 
   // Redirect to login if not authenticated
-  if (status !== "authenticated") {
+  if (status !== 'authenticated') {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-md mx-auto text-center">
           <span className="text-4xl mb-4 block">🔒</span>
-          <h1 className="text-xl sm:text-2xl font-mono mb-4">
-            Authentication Required
-          </h1>
+          <h1 className="text-xl sm:text-2xl font-mono mb-4">Authentication Required</h1>
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
             You need to be logged in to create snippets.
           </p>
-          <Button onClick={() => router.push("")}>← Back to Home</Button>
+          <Button onClick={() => router.push('')}>← Back to Home</Button>
         </div>
       </div>
     );
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.title.trim() || !form.language || !form.highlightedCode.trim()) {
-      toast.error("Please fill in all required fields");
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -130,58 +114,48 @@ export function AddSnippetPage({
       };
 
       const response = await axiosClient.post(
-        "/snippets/",
+        '/snippets/',
         snippetData,
         // session token property name may vary depending on NextAuth setup.
         // Cast session to any when reading token to avoid TS errors in this component.
         {
           headers: {
             Authorization:
-              "Bearer " +
-              ((session as any)?.accessToken ||
-                (session as any)?.access_token ||
-                ""),
+              'Bearer ' + ((session as any)?.accessToken || (session as any)?.access_token || ''),
           },
-        }
+        },
       );
 
       if (response.data?.id) {
-        toast.success("Snippet created successfully!");
+        toast.success('Snippet created successfully!');
         router.push(`/snippet-detail/${response.data.id}`);
       } else {
-        throw new Error("No snippet ID returned from server");
+        throw new Error('No snippet ID returned from server');
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create snippet";
+        error.response?.data?.message || error.message || 'Failed to create snippet';
       toast.error(errorMessage);
-      console.error("Snippet creation error:", error);
+      console.error('Snippet creation error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    router.push("");
+    router.push('');
   };
 
   const parsedTags = form.tags
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCancel}
-          className="mr-4"
-        >
+        <Button variant="ghost" size="sm" onClick={handleCancel} className="mr-4">
           ← Back
         </Button>
         <div>
@@ -219,7 +193,7 @@ export function AddSnippetPage({
                     id="title"
                     placeholder="e.g., Binary Search Implementation"
                     value={form.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    onChange={e => handleInputChange('title', e.target.value)}
                     required
                     className="text-sm"
                   />
@@ -228,14 +202,11 @@ export function AddSnippetPage({
                 {/* Language */}
                 <div className="space-y-2">
                   <Label htmlFor="language" className="text-sm">
-                    Programming Language{" "}
-                    <span className="text-destructive">*</span>
+                    Programming Language <span className="text-destructive">*</span>
                   </Label>
                   <Select
                     value={form.language}
-                    onValueChange={(value) =>
-                      handleInputChange("language", value)
-                    }
+                    onValueChange={value => handleInputChange('language', value)}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Select a language" />
@@ -248,9 +219,9 @@ export function AddSnippetPage({
                           aria-label="Filter languages"
                           placeholder="Search languages..."
                           value={langFilter}
-                          onChange={(e) => setLangFilter(e.target.value)}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onMouseDown={(e) => e.stopPropagation()}
+                          onChange={e => setLangFilter(e.target.value)}
+                          onPointerDown={e => e.stopPropagation()}
+                          onMouseDown={e => e.stopPropagation()}
                           className="w-full rounded border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
                         />
                       </div>
@@ -258,12 +229,8 @@ export function AddSnippetPage({
                         {languageChoices.languages
                           .filter(
                             (lang: any) =>
-                              lang.value
-                                .toLowerCase()
-                                .includes(langFilter.toLowerCase()) ||
-                              lang.key
-                                .toLowerCase()
-                                .includes(langFilter.toLowerCase())
+                              lang.value.toLowerCase().includes(langFilter.toLowerCase()) ||
+                              lang.key.toLowerCase().includes(langFilter.toLowerCase()),
                           )
                           .map((lang: any) => (
                             <SelectItem key={lang.key} value={lang.key}>
@@ -284,12 +251,12 @@ export function AddSnippetPage({
                     id="tags"
                     placeholder="e.g., algorithm, search, recursion (comma-separated)"
                     value={form.tags}
-                    onChange={(e) => handleInputChange("tags", e.target.value)}
+                    onChange={e => handleInputChange('tags', e.target.value)}
                     className="text-sm"
                   />
                   {parsedTags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {parsedTags.map((tag) => (
+                      {parsedTags.map(tag => (
                         <Badge key={tag} variant="outline" className="text-xs">
                           #{tag}
                         </Badge>
@@ -308,9 +275,7 @@ export function AddSnippetPage({
                     placeholder="Explain what your code does, how to use it, and any important notes..."
                     className="min-h-[120px] text-sm"
                     value={form.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
+                    onChange={e => handleInputChange('description', e.target.value)}
                   />
                 </div>
 
@@ -324,20 +289,14 @@ export function AddSnippetPage({
                     placeholder="Paste your code here..."
                     className="min-h-[300px] font-mono text-sm"
                     value={form.highlightedCode}
-                    onChange={(e) =>
-                      handleInputChange("highlightedCode", e.target.value)
-                    }
+                    onChange={e => handleInputChange('highlightedCode', e.target.value)}
                     required
                   />
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 text-sm"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="flex-1 text-sm">
                     {isSubmitting ? (
                       <>
                         <span className="mr-2">⏳</span>
@@ -381,8 +340,7 @@ export function AddSnippetPage({
                   Writing Great Titles
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Be specific and descriptive. Good: "Binary Search Algorithm".
-                  Avoid: "My Code".
+                  Be specific and descriptive. Good: "Binary Search Algorithm". Avoid: "My Code".
                 </p>
               </div>
 
@@ -392,8 +350,8 @@ export function AddSnippetPage({
                   Using Tags
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Add relevant tags like "algorithm", "api", "frontend" to help
-                  others find your snippet.
+                  Add relevant tags like "algorithm", "api", "frontend" to help others find your
+                  snippet.
                 </p>
               </div>
 
@@ -403,16 +361,14 @@ export function AddSnippetPage({
                   Code Quality
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Include comments, use proper formatting, and add example usage
-                  when possible.
+                  Include comments, use proper formatting, and add example usage when possible.
                 </p>
               </div>
 
               <div className="pt-4 border-t text-center">
                 <p className="text-xs text-muted-foreground">
                   <span className="mr-1">👤</span>
-                  Publishing as:{" "}
-                  <strong className="truncate">{session?.user?.name}</strong>
+                  Publishing as: <strong className="truncate">{session?.user?.name}</strong>
                 </p>
               </div>
             </CardContent>

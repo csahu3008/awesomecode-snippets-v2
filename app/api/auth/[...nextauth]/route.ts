@@ -1,14 +1,13 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import axios from "axios";
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import axios from 'axios';
 // These two values should be a bit less than actual token lifetimes
 const BACKEND_ACCESS_TOKEN_LIFETIME = 45 * 60; // 45 minutes
 const BACKEND_REFRESH_TOKEN_LIFETIME = 6 * 24 * 60 * 60; // 6 days
-
 class CustomAuthError extends Error {
-  constructor(message = "") {
+  constructor(message = '') {
     super(message);
-    this.message = message ;
+    this.message = message;
   }
 }
 
@@ -23,16 +22,16 @@ const getCurrentEpochTime = () => {
 // const SIGN_IN_PROVIDERS = Object.keys(SIGN_IN_HANDLERS);
 
 export const authOptions = {
-  pages: { signIn: "/sign-in" },
+  pages: { signIn: '/sign-in' },
   secret: process.env.AUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: BACKEND_REFRESH_TOKEN_LIFETIME,
   },
   providers: [
     CredentialsProvider({
-      name: "Credentials",
-      id: "login",
+      name: 'Credentials',
+      id: 'login',
       credentials: {
         username: {},
         password: {},
@@ -42,25 +41,27 @@ export const authOptions = {
       async authorize(credentials, req) {
         try {
           const response = await axios({
-            url: process.env.NEXTAUTH_BACKEND_URL + "auth/token/",
-            method: "post",
+            url: process.env.NEXTAUTH_BACKEND_URL + 'auth/token/',
+            method: 'post',
             data: credentials,
           });
           const data = response.data;
           if (data) return data;
         } catch (error) {
-          if(error?.response?.data){
-            throw new CustomAuthError(JSON.stringify(error.response.data))
-          }else{
-            throw new CustomAuthError('We couldn’t complete your login request. Please try again later.')
+          if (error?.response?.data) {
+            throw new CustomAuthError(JSON.stringify(error.response.data));
+          } else {
+            throw new CustomAuthError(
+              'We couldn’t complete your login request. Please try again later.',
+            );
           }
         }
         return null;
       },
     }),
     CredentialsProvider({
-      name: "Credentials",
-      id: "signup",
+      name: 'Credentials',
+      id: 'signup',
       credentials: {
         username: {},
         password: {},
@@ -72,19 +73,20 @@ export const authOptions = {
       async authorize(credentials, req) {
         try {
           const response = await axios({
-            url: process.env.NEXTAUTH_BACKEND_URL + "auth/register/",
-            method: "post",
+            url: process.env.NEXTAUTH_BACKEND_URL + 'auth/register/',
+            method: 'post',
             data: credentials,
           });
           const data = response.data;
           if (data) return data;
         } catch (error) {
-          if(error?.response?.data){
-            throw new CustomAuthError(JSON.stringify(error.response.data))
-          }else{
-            throw new CustomAuthError('We couldn’t complete your login request. Please try again later.')
+          if (error?.response?.data) {
+            throw new CustomAuthError(JSON.stringify(error.response.data));
+          } else {
+            throw new CustomAuthError(
+              'We couldn’t complete your login request. Please try again later.',
+            );
           }
-          
         }
         return null;
       },
@@ -104,24 +106,27 @@ export const authOptions = {
       if (user && account) {
         // let backendResponse = account.provider === "credentials" ? user : account.meta;
         let backendResponse = user;
-        token["user"] = backendResponse.user;
-        token["access_token"] = backendResponse.access;
-        token["refresh_token"] = backendResponse.refresh;
-        token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
+        token['user'] = backendResponse.user;
+        token['access_token'] = backendResponse.access;
+        token['refresh_token'] = backendResponse.refresh;
+        token['ref'] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
         return token;
       }
       // Refresh the backend token if necessary
-      if (getCurrentEpochTime() > token["ref"]) {
+      if (getCurrentEpochTime() > token['ref']) {
         const response = await axios({
-          method: "post",
-          url: process.env.NEXTAUTH_BACKEND_URL + "auth/token/refresh/",
+          method: 'post',
+          url: process.env.NEXTAUTH_BACKEND_URL + 'auth/token/refresh/',
           data: {
-            refresh: token["refresh_token"],
+            refresh: token['refresh_token'],
           },
         });
-        token["access_token"] = response.data.access;
-        token["refresh_token"] = response.data.refresh;
-        token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
+        const prevToken = { ...token };
+        token = {};
+        token['access_token'] = response.data.access;
+        token['refresh_token'] = prevToken.data.refresh;
+        token['user'] = prevToken.user;
+        token['ref'] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
       }
       return token;
     },

@@ -1,27 +1,21 @@
-"use client";
-import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { useGlobalContext } from "../context";
-import { AuthModal } from "./AuthModal";
-import { Button } from "./ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./ui/sheet";
+'use client';
+import { signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useGlobalContext } from '../context';
+import { AuthModal } from './AuthModal';
+import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 
 type Page =
-  | "overview"
-  | "snippets"
-  | "contributors"
-  | "languages"
-  | "snippet-detail"
-  | "add-snippet"
-  | "edit-snippet";
+  | 'overview'
+  | 'snippets'
+  | 'contributors'
+  | 'languages'
+  | 'snippet-detail'
+  | 'add-snippet'
+  | 'edit-snippet';
 
 interface User {
   id: string;
@@ -31,65 +25,42 @@ interface User {
 }
 
 interface HeaderProps {
-  currentPage: Page;
-  handleNavigate: (page: Page) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   user: User | null;
-  handleLogin: (user: User) => void;
-  handleLogout: () => void;
 }
 
 export function Header() {
-  const {
-    currentPage,
-    handleNavigate,
-    isDarkMode,
-    toggleDarkMode,
-    user,
-    handleLogin,
-    handleLogout,
-  } = useGlobalContext();
+  const { isDarkMode, toggleDarkMode, user } = useGlobalContext();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const pathname = usePathname();
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const navItems = [
-    { id: "overview" as Page, label: "Overview", emoji: "🏠", href: "/" },
+    { id: 'overview' as Page, label: 'Overview', emoji: '🏠', href: '/' },
     {
-      id: "snippets" as Page,
-      label: "Snippets",
-      emoji: "📄",
-      href: "/snippets",
+      id: 'snippets' as Page,
+      label: 'Snippets',
+      emoji: '📄',
+      href: '/snippets',
     },
     {
-      id: "contributors" as Page,
-      label: "Top Contributors",
-      emoji: "🌟",
-      href: "/contributors",
+      id: 'contributors' as Page,
+      label: 'Top Contributors',
+      emoji: '🌟',
+      href: '/contributors',
     },
     {
-      id: "languages" as Page,
-      label: "Top Languages",
-      emoji: "🧠",
-      href: "/languages",
+      id: 'languages' as Page,
+      label: 'Top Languages',
+      emoji: '🧠',
+      href: '/languages',
     },
   ];
-
-  const handleNavClick = (page: Page) => {
-    handleNavigate(page);
-    setIsSheetOpen(false);
-  };
-
-  const handleLoginSuccess = (userData: User) => {
-    handleLogin(userData);
-    setIsAuthModalOpen(false);
-  };
-
-  const handleLogoutClick = () => {
-    handleLogout();
-    setIsSheetOpen(false);
-  };
+  const router = useRouter();
+  const clonedSearchParams = new URLSearchParams(searchParams.toString());
+  clonedSearchParams.set('show_login_modal', 'true');
+  const loginPath = `${pathname}${clonedSearchParams ? `?${clonedSearchParams.toString()}` : ''}`;
 
   return (
     <>
@@ -101,21 +72,19 @@ export function Header() {
             <span className="font-mono tracking-tight hidden sm:inline text-lg">
               AwesomeCodeSnippets
             </span>
-            <span className="font-mono tracking-tight sm:hidden text-lg">
-              ACS
-            </span>
+            <span className="font-mono tracking-tight sm:hidden text-lg">ACS</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-6">
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <Link
                 key={item.id}
                 href={item.href}
                 className={`text-sm transition-colors hover:text-primary px-3 py-2 rounded-md ${
                   pathname === item.href
-                    ? "text-primary font-medium bg-primary/10"
-                    : "text-muted-foreground hover:bg-muted"
+                    ? 'text-primary font-medium bg-primary/10'
+                    : 'text-muted-foreground hover:bg-muted'
                 }`}
               >
                 <span className="mr-2">{item.emoji}</span>
@@ -144,15 +113,13 @@ export function Header() {
               size="sm"
               onClick={toggleDarkMode}
               className="h-9 w-9 px-0 text-lg"
-              title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {isDarkMode ? "☀️" : "🌙"}
+              {isDarkMode ? '☀️' : '🌙'}
             </Button>
 
             {/* Desktop Auth Section */}
-            {status === "authenticated" ? (
+            {status === 'authenticated' ? (
               <div className="hidden xl:flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
@@ -162,23 +129,16 @@ export function Header() {
                     {session.user.username}
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => signOut({ redirect: false })}
-                >
+                <Button variant="outline" size="sm" onClick={() => signOut({ redirect: false })}>
                   Logout
                 </Button>
               </div>
             ) : (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setIsAuthModalOpen(true)}
-                className="hidden xl:inline-flex"
-              >
-                Login
-              </Button>
+              <Link href={loginPath}>
+                <Button variant="default" size="sm" className="hidden xl:inline-flex">
+                  Login
+                </Button>
+              </Link>
             )}
 
             {/* Mobile Menu */}
@@ -205,16 +165,14 @@ export function Header() {
 
                   {/* User Section */}
                   <div className="p-6 pb-4 border-b">
-                    {status === "authenticated" ? (
+                    {status === 'authenticated' ? (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-medium">
                             {session.user.username.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
-                              {session.user.username}
-                            </p>
+                            <p className="font-medium text-sm truncate">{session.user.username}</p>
                           </div>
                         </div>
                         <Button
@@ -232,18 +190,19 @@ export function Header() {
                         <p className="text-sm text-muted-foreground">
                           Login to access all features
                         </p>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => {
-                            setIsAuthModalOpen(true);
-                            setIsSheetOpen(false);
-                          }}
-                          className="w-full justify-start"
-                        >
-                          <span className="mr-2">🔑</span>
-                          Login / Sign Up
-                        </Button>
+                        <Link href={loginPath}>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
+                              setIsSheetOpen(false);
+                            }}
+                            className="w-full justify-start"
+                          >
+                            <span className="mr-2">🔑</span>
+                            Login / Sign Up
+                          </Button>
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -254,15 +213,15 @@ export function Header() {
                       <p className="text-xs font-medium text-muted-foreground mb-3 px-3">
                         NAVIGATION
                       </p>
-                      {navItems.map((item) => (
+                      {navItems.map(item => (
                         <Link
                           key={item.id}
                           href={item.href}
                           onClick={() => setIsSheetOpen(false)}
                           className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors ${
                             pathname === item.href
-                              ? "bg-primary text-primary-foreground font-medium"
-                              : "text-foreground hover:bg-muted"
+                              ? 'bg-primary text-primary-foreground font-medium'
+                              : 'text-foreground hover:bg-muted'
                           }`}
                         >
                           <span className="text-lg">{item.emoji}</span>
@@ -292,16 +251,14 @@ export function Header() {
                   {/* Footer */}
                   <div className="p-6 pt-4 border-t">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Theme
-                      </span>
+                      <span className="text-xs text-muted-foreground">Theme</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={toggleDarkMode}
                         className="h-8 px-2 text-lg"
                       >
-                        {isDarkMode ? "☀️" : "🌙"}
+                        {isDarkMode ? '☀️' : '🌙'}
                       </Button>
                     </div>
                   </div>
@@ -311,13 +268,6 @@ export function Header() {
           </div>
         </div>
       </header>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        handleLogin={handleLoginSuccess}
-      />
     </>
   );
 }

@@ -1,31 +1,25 @@
-"use client";
-import { useRouter } from "next/navigation";
+'use client';
+import { useRouter } from 'next/navigation';
 
-import dayjs from "dayjs";
-import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
-import { ConfirmationModal } from "./ConfirmationModal";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import { Separator } from "./ui/separator";
-import { Textarea } from "./ui/textarea";
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import { Textarea } from './ui/textarea';
+import { ConfirmationModal } from './ConfirmationModal';
+import { toast } from 'sonner';
+import Link from 'next/link';
+import dayjs from 'dayjs';
 
 type Page =
-  | "overview"
-  | "snippets"
-  | "contributors"
-  | "languages"
-  | "snippet-detail"
-  | "add-snippet"
-  | "edit-snippet";
+  | 'overview'
+  | 'snippets'
+  | 'contributors'
+  | 'languages'
+  | 'snippet-detail'
+  | 'add-snippet'
+  | 'edit-snippet';
 
 interface User {
   id: string;
@@ -58,9 +52,9 @@ interface SnippetDetailPageProps {
 }
 
 // Note: `article` and `relatedArticles` are provided by the parent route — this component only consumes them.
-import relativeTime from "dayjs/plugin/relativeTime";
-import { useSession } from "next-auth/react";
-import { axiosClient } from "../api-client";
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { useSession } from 'next-auth/react';
+import { axiosClient } from '../api-client';
 
 // Enable the plugin => provides fromNow() functionality
 dayjs.extend(relativeTime);
@@ -91,28 +85,29 @@ export function SnippetDetailPage({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(articleData.code ?? "");
-    toast.success("Code copied to clipboard!");
+    navigator.clipboard.writeText(articleData.code ?? '');
+    toast.success('Code copied to clipboard!');
   };
 
   const handleDownloadCode = () => {
-    const element = document.createElement("a");
-    const file = new Blob([articleData.code ?? ""], { type: "text/plain" });
+    const element = document.createElement('a');
+    const file = new Blob([articleData.code ?? ''], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    const ext = (articleData?.language || "txt").toLowerCase();
-    element.download = `${(articleData?.title ?? "snippet")
+    const ext = (articleData?.language || 'txt').toLowerCase();
+    element.download = `${(articleData?.title ?? 'snippet')
       .toString()
       .toLowerCase()
-      .replace(/\s+/g, "-")}.${
-      ext === "c++" || ext === "cpp" ? "cpp" : ext === "python" ? "py" : "txt"
+      .replace(/\s+/g, '-')}.${
+      ext === 'c++' || ext === 'cpp' ? 'cpp' : ext === 'python' ? 'py' : 'txt'
     }`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    toast.success("Code downloaded!");
+    toast.success('Code downloaded!');
   };
 
-  const handleBookmarkToggle = async () => {
+   const handleBookmarkToggle =async () => {
+    
     try {
       const resp = await axiosClient.post(
         `snippets/${snippetId}/bookmark/`,
@@ -144,27 +139,26 @@ export function SnippetDetailPage({
         error.message ||
         "Failed to delete snippet";
       toast.error(msg);
-    }
+    } 
   };
+
 
   const handleShareWhatsApp = () => {
     const url = window.location.href;
-    const text = `Check out this code snippet: ${articleData?.title ?? ""}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-      text + "\n" + url
-    )}`;
-    window.open(whatsappUrl, "_blank");
+    const text = `Check out this code snippet: ${articleData?.title ?? ''}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleShareTwitter = () => {
     const url = window.location.href;
-    const text = `Check out this ${articleData?.language ?? ""} code snippet: ${
-      articleData?.title ?? ""
+    const text = `Check out this ${articleData?.language ?? ''} code snippet: ${
+      articleData?.title ?? ''
     }`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      text
+      text,
     )}&url=${encodeURIComponent(url)}`;
-    window.open(twitterUrl, "_blank");
+    window.open(twitterUrl, '_blank');
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -262,10 +256,7 @@ export function SnippetDetailPage({
                       {article.title}
                     </CardTitle>
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="text-sm px-3 py-1 flex-shrink-0"
-                  >
+                  <Badge variant="secondary" className="text-sm px-3 py-1 flex-shrink-0">
                     {article.language}
                   </Badge>
                 </div>
@@ -287,45 +278,37 @@ export function SnippetDetailPage({
                       {articleData?.coder?.username ??
                         articleData?.coder ??
                         articleData?.author ??
-                        "Unknown"}
+                        'Unknown'}
                     </span>
                   </div>
                   <div className="flex items-center">
                     <span className="mr-1">📅</span>
                     <span className="whitespace-nowrap">
-                      Last updated{" "}
+                      Last updated{' '}
                       {articleData?.updated_date
                         ? dayjs(articleData.updated_date).fromNow()
                         : articleData?.date
-                        ? dayjs(articleData.date).fromNow()
-                        : "Unknown"}
+                          ? dayjs(articleData.date).fromNow()
+                          : 'Unknown'}
                     </span>
                   </div>
                   {articleData?.stars && (
                     <div className="flex items-center">
                       <span className="mr-1">⭐</span>
-                      <span className="whitespace-nowrap">
-                        {articleData.stars} stars
-                      </span>
+                      <span className="whitespace-nowrap">{articleData.stars} stars</span>
                     </div>
                   )}
                   {articleData?.views && (
                     <div className="flex items-center">
                       <span className="mr-1">👁️</span>
-                      <span className="whitespace-nowrap">
-                        {articleData.views} views
-                      </span>
+                      <span className="whitespace-nowrap">{articleData.views} views</span>
                     </div>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
                 {/* content section might need to upgrade styling later */}
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: articleData?.description ?? "",
-                  }}
-                ></div>
+                <div dangerouslySetInnerHTML={{ __html: articleData?.description ?? '' }}></div>
               </CardContent>
             </Card>
 
@@ -341,11 +324,7 @@ export function SnippetDetailPage({
                     <span className="mr-1">📋</span>
                     <span className="hidden sm:inline">Copy</span>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadCode}
-                  >
+                  <Button variant="outline" size="sm" onClick={handleDownloadCode}>
                     <span className="mr-1">⬇️</span>
                     <span className="hidden sm:inline">Download</span>
                   </Button>
@@ -354,7 +333,7 @@ export function SnippetDetailPage({
               <CardContent>
                 <div className="relative">
                   <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono leading-relaxed border">
-                    <code>{articleData?.code ?? ""}</code>
+                    <code>{articleData?.code ?? ''}</code>
                   </pre>
                 </div>
               </CardContent>
@@ -374,11 +353,8 @@ export function SnippetDetailPage({
               <CardContent>
                 {relatedArticlesList.length > 0 ? (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {relatedArticlesList.map((related) => (
-                      <Link
-                        key={related.id}
-                        href={`/snippet-detail/${related.id}`}
-                      >
+                    {relatedArticlesList.map(related => (
+                      <Link key={related.id} href={`/snippet-detail/${related.id}`}>
                         <Card className="hover:shadow-md transition-all duration-200 cursor-pointer hover:-translate-y-1 border-border">
                           <CardContent className="p-4">
                             <h3 className="font-medium text-sm mb-3 line-clamp-2 leading-tight">
@@ -404,8 +380,7 @@ export function SnippetDetailPage({
                                 {related.updated_date && (
                                   <div className="flex items-center">
                                     <span className="mr-1">📅</span>
-                                    Last updated{" "}
-                                    {dayjs(related.updated_date).fromNow()}
+                                    Last updated {dayjs(related.updated_date).fromNow()}
                                   </div>
                                 )}
                               </div>
@@ -425,9 +400,7 @@ export function SnippetDetailPage({
                   <div className="text-center py-8 text-muted-foreground">
                     <span className="text-2xl mb-2 block">🔗</span>
                     <p className="text-sm">No related snippets found</p>
-                    <p className="text-xs mt-1">
-                      Check back later for more content!
-                    </p>
+                    <p className="text-xs mt-1">Check back later for more content!</p>
                   </div>
                 )}
               </CardContent>
@@ -448,15 +421,11 @@ export function SnippetDetailPage({
                     <Textarea
                       placeholder="Share your thoughts about this snippet..."
                       value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
+                      onChange={e => setNewComment(e.target.value)}
                       className="min-h-[100px] text-sm"
                     />
                     <div className="flex justify-end">
-                      <Button
-                        type="submit"
-                        disabled={!newComment.trim()}
-                        size="sm"
-                      >
+                      <Button type="submit" disabled={!newComment.trim()} size="sm">
                         <span className="mr-1">💬</span>
                         Post Comment
                       </Button>
@@ -479,33 +448,31 @@ export function SnippetDetailPage({
                     comments.length > 0 &&
                     comments.map((comment, index) => (
                       <div key={index} className="flex space-x-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+                      <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
                           {comment.user?.username?.charAt(0)?.toUpperCase()}
-                        </div>
-                        <div className="flex-1 space-y-1 min-w-0">
-                          <div className="flex items-center space-x-2">
+                      </div>
+                      <div className="flex-1 space-y-1 min-w-0">
+                        <div className="flex items-center space-x-2">
                             <span className="font-medium text-sm truncate">
                               {comment.user?.username}
                             </span>
-                            <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
-                              <span className="mr-1">⏰</span>
+                          <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
+                            <span className="mr-1">⏰</span>
                               posted {dayjs(comment.date_commented).fromNow()}
-                            </span>
-                          </div>
+                          </span>
+                        </div>
                           <p className="text-sm leading-relaxed break-words">
                             {comment.detail}
                           </p>
-                        </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                 </div>
 
                 {comments.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <span className="text-2xl mb-2 block">💬</span>
-                    <p className="text-sm">
-                      No comments yet. Be the first to share your thoughts!
-                    </p>
+                    <p className="text-sm">No comments yet. Be the first to share your thoughts!</p>
                   </div>
                 )}
               </CardContent>
@@ -525,15 +492,15 @@ export function SnippetDetailPage({
               <CardContent className="space-y-3">
                 {/* Bookmark Button */}
                 {status === "authenticated" && (
-                  <Button
-                    className="w-full mb-3"
-                    variant={isBookmarked ? "default" : "outline"}
-                    onClick={handleBookmarkToggle}
-                    size="sm"
-                  >
+                <Button
+                  className="w-full mb-3"
+                  variant={isBookmarked ? 'default' : 'outline'}
+                  onClick={handleBookmarkToggle}
+                  size="sm"
+                >
                     <span className="mr-2">{isBookmarked ? "🔖" : "📌"}</span>
                     {isBookmarked ? "Bookmarked" : "Bookmark"}
-                  </Button>
+                </Button>
                 )}
 
                 {/* Owner Actions */}
@@ -648,7 +615,7 @@ export function SnippetDetailPage({
         onConfirm={handleDelete}
         title="Delete Snippet"
         description={`Are you sure you want to delete "${
-          articleData?.title ?? ""
+          articleData?.title ?? ''
         }"? This action cannot be undone and all comments will be lost.`}
         confirmText="Delete"
         confirmVariant="destructive"
