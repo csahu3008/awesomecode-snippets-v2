@@ -1,16 +1,14 @@
-'use client';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useGlobalContext } from '../context';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { usePathname, useSearchParams } from 'next/navigation';
+import type { Contributor, LanguageSummary, Snippet } from '../types/api';
 import { getColorByIndex } from '../utils';
-import type { LanguageSummary, Contributor, Snippet } from '../types/api';
+import { LoginCtaOverview } from './client';
+import { Suspense } from 'react';
 // Enable the plugin
 dayjs.extend(relativeTime);
 
@@ -21,12 +19,7 @@ type OverviewPageProps = {
 };
 
 function OverviewPage({ topLanguages = [], topContributors = [], latestSnippets = [] }: OverviewPageProps) {
-  const { status } = useSession();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const clonedSearchParams = new URLSearchParams(searchParams.toString());
-  clonedSearchParams.set('show_login_modal', 'true');
-  const loginPath = `${pathname}${clonedSearchParams ? `?${clonedSearchParams.toString()}` : ''}`;
+  
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
       {/* Hero Section */}
@@ -38,12 +31,9 @@ function OverviewPage({ topLanguages = [], topContributors = [], latestSnippets 
             कुछ नया सीख सकते हैं।
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href={status === 'authenticated' ? '/add-snippet' : `${loginPath}`}>
-              <Button size="lg" className="font-medium">
-                <span className="mr-2">{status === 'authenticated' ? '➕' : '📝'}</span>
-                {status === 'authenticated' ? 'Add Snippet' : 'Login to Add Snippet'}
-              </Button>
-            </Link>
+           <Suspense>
+            <LoginCtaOverview />
+           </Suspense>
             <Link href={'/snippets'}>
               <Button variant="outline" size="lg">
                 <span className="mr-2">🔍</span>
