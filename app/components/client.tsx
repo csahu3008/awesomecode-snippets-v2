@@ -21,3 +21,44 @@ export const LoginCtaOverview = () => {
     </Link>
   );
 };
+
+export function LoginLink() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const clonedSearchParams = new URLSearchParams(searchParams.toString());
+  clonedSearchParams.set('show_login_modal', 'true');
+  const loginPath = `${pathname}?${clonedSearchParams.toString()}`;
+
+  return (
+    <Link href={loginPath}>
+      <Button variant="default" size="sm" className="hidden xl:inline-flex">
+        Login
+      </Button>
+    </Link>
+  );
+}
+
+// For mobile menu
+export function MobileLoginLink({ onClose }: { onClose: () => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const clonedSearchParams = new URLSearchParams(searchParams.toString());
+  clonedSearchParams.set('show_login_modal', 'true');
+  const loginPath = `${pathname}?${clonedSearchParams.toString()}`;
+
+  return (
+    <Link href={loginPath}>
+      <Button
+        variant="default"
+        size="sm"
+        onClick={onClose}
+        className="w-full justify-start"
+      >
+        <span className="mr-2">🔑</span>
+        Login / Sign Up
+      </Button>
+    </Link>
+  );
+}

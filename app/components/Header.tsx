@@ -2,11 +2,13 @@
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useGlobalContext } from '../context';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { LoginLink, MobileLoginLink } from './client';
+
 type Page =
   | 'overview'
   | 'snippets'
@@ -26,15 +28,14 @@ interface User {
 interface HeaderProps {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  user: User | null;
 }
 
 export function Header() {
-  const { isDarkMode, toggleDarkMode, user } = useGlobalContext();
+  const { isDarkMode, toggleDarkMode } = useGlobalContext();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { data: session, status } = useSession();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
+  
   const navItems = [
     { id: 'overview' as Page, label: 'Overview', emoji: '🏠', href: '/' },
     {
@@ -56,10 +57,6 @@ export function Header() {
       href: '/languages',
     },
   ];
-  const router = useRouter();
-  const clonedSearchParams = new URLSearchParams(searchParams.toString());
-  clonedSearchParams.set('show_login_modal', 'true');
-  const loginPath = `${pathname}${clonedSearchParams ? `?${clonedSearchParams.toString()}` : ''}`;
 
   return (
     <>
@@ -70,9 +67,11 @@ export function Header() {
             <span className="font-mono tracking-tight hidden sm:inline text-lg">
              <img src={'logo.png'} alt="" width="876" height="128" className='h-10 w-auto' />
             </span>
-            <span className="font-mono tracking-tight sm:hidden text-lg"><img src={'logo.png'} alt="" width="876" height="128" className='h-8 w-auto' />
-</span>
+            <span className="font-mono tracking-tight sm:hidden text-lg">
+              <img src={'logo.png'} alt="" width="876" height="128" className='h-8 w-auto' />
+            </span>
           </Link>
+          
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-6">
             {navItems.map(item => (
@@ -94,7 +93,7 @@ export function Header() {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2 lg:space-x-3">
             {/* Add Snippet Button for logged-in users (Desktop only) */}
-            {user && (
+            {status === 'authenticated' && (
               <Link
                 href="/add-snippet"
                 className="hidden md:inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -132,11 +131,7 @@ export function Header() {
                 </Button>
               </div>
             ) : (
-              <Link href={loginPath}>
-                <Button variant="default" size="sm" className="hidden xl:inline-flex">
-                  Login
-                </Button>
-              </Link>
+              <LoginLink />
             )}
 
             {/* Mobile Menu */}
@@ -188,19 +183,7 @@ export function Header() {
                         <p className="text-sm text-muted-foreground">
                           Login to access all features
                         </p>
-                        <Link href={loginPath}>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => {
-                              setIsSheetOpen(false);
-                            }}
-                            className="w-full justify-start"
-                          >
-                            <span className="mr-2">🔑</span>
-                            Login / Sign Up
-                          </Button>
-                        </Link>
+                        <MobileLoginLink onClose={() => setIsSheetOpen(false)} />
                       </div>
                     )}
                   </div>
@@ -229,7 +212,7 @@ export function Header() {
                     </div>
 
                     {/* Add Snippet for logged-in users */}
-                    {user && (
+                    {status === 'authenticated' && (
                       <div className="mt-6 pt-6 border-t">
                         <p className="text-xs font-medium text-muted-foreground mb-3 px-3">
                           ACTIONS
