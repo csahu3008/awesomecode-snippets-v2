@@ -4,7 +4,6 @@ interface GlobalContextType {
   currentPage: Page;
   selectedSnippetId: string;
   isDarkMode: boolean;
-  handleNavigate: (page: Page, snippetId?: string) => void;
   toggleDarkMode: () => void;
 }
 
@@ -33,20 +32,38 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
   const [selectedSnippetId, setSelectedSnippetId] = useState<string>('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const handleNavigate = (page: Page, snippetId?: string) => {
-    setcurrentPage(page);
-    if (snippetId) {
-      setSelectedSnippetId(snippetId);
-    }
-  };
-
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDarkMode ? 'light' : 'dark');
+    setIsDarkMode(prev => {
+      const next = !prev;
+      try {
+        if (next) {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        }
+      } catch (e) {
+        // localStorage or document may be unavailable in some environments; ignore safely
+      }
+      return next;
+    });
   };
   useEffect(() => {
-    setIsDarkMode(localStorage.getItem('theme') === 'dark');
+    // initialize theme from localStorage (safe access)
+    try {
+      const _theme = localStorage.getItem('theme');
+      if (_theme === 'dark') {
+        setIsDarkMode(true);
+        document.documentElement.classList.add('dark');
+      } else if (_theme === 'light') {
+        setIsDarkMode(false);
+        document.documentElement.classList.remove('dark');
+      }
+      // if no preference set, do nothing and let CSS/OS preference take over
+    } catch (e) {
+      // ignore - localStorage not available
+    }
   }, []);
   return (
     <GlobalContext.Provider
@@ -54,7 +71,6 @@ const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
         currentPage,
         selectedSnippetId,
         isDarkMode,
-        handleNavigate,
         toggleDarkMode,
       }}
     >
