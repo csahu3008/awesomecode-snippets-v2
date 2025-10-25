@@ -3,7 +3,7 @@ import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useGlobalContext } from '../context';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
@@ -131,7 +131,9 @@ export function Header() {
                 </Button>
               </div>
             ) : (
+              <Suspense>
               <LoginLink />
+              </Suspense>
             )}
 
             {/* Mobile Menu */}
@@ -183,7 +185,9 @@ export function Header() {
                         <p className="text-sm text-muted-foreground">
                           Login to access all features
                         </p>
+                        <Suspense>
                         <MobileLoginLink onClose={() => setIsSheetOpen(false)} />
+                        </Suspense>
                       </div>
                     )}
                   </div>
