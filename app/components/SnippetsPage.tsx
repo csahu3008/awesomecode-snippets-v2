@@ -1,12 +1,8 @@
-'use client';
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
 import {
   Pagination,
   PaginationContent,
@@ -15,58 +11,39 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from './ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
-type Page = 'overview' | 'snippets' | 'contributors' | 'languages' | 'snippet-detail';
+import { SnippetsSearchFilterWrapper } from './SnippetsSearchFilterWrapper';
 
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
-import type { Snippet, PagedResponse, LanguageOption } from '../types/api';
+import type { Snippet, LanguageOption } from '../types/api';
 
 type SnippetsPageProps = {
   snippets: Snippet[];
   paginationConfig: { totalSnippets: number; currentPage?: number; itemsPerPage: number };
   languageChoices: { languages: LanguageOption[] };
+  searchParams: {
+    query?: string;
+    language?: string;
+    page?: string;
+  };
 };
 
-export function SnippetsPage({ snippets, paginationConfig, languageChoices }: SnippetsPageProps) {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
-  const safeLanguageChoices = languageChoices && languageChoices.languages ? languageChoices : { languages: [] };
-  const languages = [{ key: 'all', value: 'All Languages' }, ...safeLanguageChoices.languages];
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('query')?.toString() || '');
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    searchParams.get('language')?.toString(),
-  );
-  const initialRef = useRef(true);
-  // delete page before appending it to paginated pages
-  const paginatedParams = new URLSearchParams(searchParams);
-  paginatedParams.delete('page');
-  useEffect(() => {
-    if (initialRef.current) {
-      initialRef.current = false;
-      return;
-    }
-    const params = new URLSearchParams(searchParams);
-    if (selectedLanguage) {
-      params.set('language', selectedLanguage);
-    } else {
-      params.delete('language');
-    }
-    if (searchQuery) {
-      params.set('query', searchQuery);
-    } else {
-      params.delete('query');
-    }
-    if (searchQuery || selectedLanguage) {
-      params.delete('page');
-    }
-    replace(`${pathname}?${params.toString()}`);
-  }, [selectedLanguage, searchQuery]);
+export function SnippetsPage({ 
+  snippets, 
+  paginationConfig, 
+  languageChoices,
+  searchParams 
+}: SnippetsPageProps) {
   const { totalSnippets, currentPage = 1, itemsPerPage } = paginationConfig;
   const totalPages = Math.ceil(totalSnippets / itemsPerPage);
+  
+  // Build pagination params without page
+  const paginatedParams = new URLSearchParams();
+  if (searchParams?.query) paginatedParams.set('query', searchParams.query);
+  if (searchParams?.language) paginatedParams.set('language', searchParams.language);
+  const paginatedParamsString = paginatedParams.toString();
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
@@ -87,34 +64,16 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }: Sn
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-3 text-muted-foreground text-sm">🔍</span>
-          <Input
-            placeholder="Search snippets, tags, or descriptions..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9 text-sm"
-          />
-        </div>
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-          <SelectTrigger className="w-full sm:w-48 text-sm">
-            <SelectValue placeholder="Filter by language" />
-          </SelectTrigger>
-          <SelectContent>
-            {languages.map(lang => (
-              <SelectItem key={lang.key} value={lang.key}>
-                {lang.key === 'all' ? 'All Languages' : lang.value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Filters - Now wrapped in Suspense */}
+      <SnippetsSearchFilterWrapper
+        languageChoices={languageChoices}
+        initialQuery={searchParams.query}
+        initialLanguage={searchParams.language}
+      />
 
       {/* Snippets Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-  {snippets.map((snippet: Snippet) => (
+        {snippets.map((snippet: Snippet) => (
           <Link key={snippet.id} href={`/snippet-detail/${snippet.id}`}>
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader>
@@ -123,7 +82,6 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }: Sn
                     <CardTitle className="text-base sm:text-lg mb-2 break-words">
                       {snippet.title}
                     </CardTitle>
-                    {/* excerpt needs to be added later */}
                     <CardDescription className="line-clamp-2 text-sm">
                       {snippet.description}
                     </CardDescription>
@@ -135,7 +93,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }: Sn
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-1 mb-4">
-                    {Array.isArray(snippet.tags) &&
+                  {Array.isArray(snippet.tags) &&
                     snippet.tags?.map((tag: string) => (
                       <Badge key={tag} variant="outline" className="text-xs">
                         #{tag}
@@ -192,14 +150,14 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }: Sn
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/snippets?page=${Math.max(1, currentPage - 1)}${paginatedParams.toString().length > 0 ? `&${paginatedParams.toString()}` : ''}`}
+                  href={`/snippets?page=${Math.max(1, currentPage - 1)}${paginatedParamsString.length > 0 ? `&${paginatedParamsString}` : ''}`}
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                 <PaginationItem key={page}>
                   <PaginationLink
-                    href={`/snippets?page=${page}${paginatedParams.toString().length > 0 ? `&${paginatedParams.toString()}` : ''}`}
+                    href={`/snippets?page=${page}${paginatedParamsString.length > 0 ? `&${paginatedParamsString}` : ''}`}
                     isActive={currentPage === page}
                   >
                     {page}
@@ -208,7 +166,7 @@ export function SnippetsPage({ snippets, paginationConfig, languageChoices }: Sn
               ))}
               <PaginationItem>
                 <PaginationNext
-                  href={`/snippets?page=${Math.min(totalPages, currentPage + 1)}${paginatedParams.toString().length > 0 ? `&${paginatedParams.toString()}` : ''}`}
+                  href={`/snippets?page=${Math.min(totalPages, currentPage + 1)}${paginatedParamsString.length > 0 ? `&${paginatedParamsString}` : ''}`}
                   className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
